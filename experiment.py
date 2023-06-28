@@ -8,7 +8,7 @@ hyperparams = {'TRAIN_SIZE':1000,
                'LEARNING_RATE_COEFF':1.10,
                'TEST_SIZE':100}
 
-task = Task.init(project_name='examples', task_name=str(hyperparams))
+task = Task.init(project_name='examples', task_name='experiment')
 
 task.set_parameters_as_dict(hyperparams)
 
