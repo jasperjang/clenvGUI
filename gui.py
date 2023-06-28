@@ -157,7 +157,8 @@ execCompleteLayout =    [
                             [sg.Text(f"New task created id={task_id}", key='execCompleteT1')],
                             [sg.Text(f"Task id={task_id} sent for execution on queue {queue}", key='execCompleteT2')],
                             [sg.Text("Execution log at:")],
-                            [sg.InputText(f'{URL}', key='execCompleteURL')]
+                            [sg.InputText(f'{URL}', key='execCompleteURL')],
+                            [sg.Button('Back', key='execCompleteBack')]
                         ]
 
 configLayout =  [
@@ -437,10 +438,17 @@ while True:
                 Task.enqueue(create_populate.task, queue_name=queue)
                 URL = create_populate.task.get_output_log_web_page()
                 mainWindow['execCompleteT1'].update(f"New task created id={task_id}")
-                mainWindow['execCompleteT1'].update(f"Task id={task_id} sent for execution on queue {queue}")
+                mainWindow['execCompleteT2'].update(f"Task id={task_id} sent for execution on queue {queue}")
                 mainWindow['execCompleteURL'].update(f'{URL}')
                 mainWindow['execLayout'].update(visible=False)
                 mainWindow['execCompleteLayout'].update(visible=True)
+        if mainEvent == 'execCompleteBack':
+            mainWindow['queueList'].update('')
+            mainWindow['taskTypes'].update('')
+            mainWindow['taskName'].update('')
+            mainWindow['path'].update('./')
+            mainWindow['execCompleteLayout'].update(visible=False)
+            mainWindow['execLayout'].update(visible=True)
 
     # error controllers
     if windowActivity['error']:
