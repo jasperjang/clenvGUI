@@ -1,0 +1,7 @@
+clenv >= 0.0.8
+clearml
+git
+pysimplgui
+os
+json
+webbrowser
