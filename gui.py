@@ -5,7 +5,7 @@ from clearml.backend_interface.task.populate import CreateAndPopulate
 from clenv.cli.queue.queue_manager import QueueManager
 from git import Repo
 from os.path import isfile
-from config_manager import ConfigManager
+from clenv.cli.config.config_manager import ConfigManager
 import webbrowser as wb
 import os, json
 
@@ -125,18 +125,19 @@ def get_template_names(current_templates):
     template_names = []
     for key in current_templates:
         template_names.append(key)
-    return template_names
+    return template_names 
 
 # executes the configuration from the run config
 def exec_config(run_config):
-    run_config['project_name'] = project_name,
-    run_config['task_name'] = task_name,
-    run_config['task_type'] = task_type,
-    run_config['repo'] = remote_url,
-    run_config['branch'] = current_branch,
-    run_config['path'] = path,
-    run_config['script'] = script,
-    run_config['queue'] = queue
+    project_name = run_config['project_name']
+    task_name = run_config['task_name']
+    task_type = run_config['task_type']
+    remote_url = run_config['repo']
+    current_branch = run_config['branch']
+    path = run_config['path']
+    script = run_config['script']
+    queue = run_config['queue']
+    tags = run_config['tags']
     create_populate = CreateAndPopulate(
         project_name=project_name,
         task_name=task_name,
@@ -150,6 +151,8 @@ def exec_config(run_config):
     create_populate.task._set_runtime_properties({"_CLEARML_TASK": True})
     task_id = create_populate.get_id()
     Task.enqueue(create_populate.task, queue_name=queue)
+    if tags != ['']:
+        create_populate.task.set_tags(tags)
     URL = create_populate.task.get_output_log_web_page()
     main_window['exec_complete_text1'].update(f"New task created id={task_id}")
     main_window['exec_complete_text2'].update(f"Task id={task_id} sent for execution on queue {queue}")
@@ -222,6 +225,9 @@ exec_layout = [
     [sg.Text('')],
     [sg.Text('Please enter a script path')],
     [sg.InputText('/', key='path')],
+    [sg.Text('')],
+    [sg.Text('Enter tags separated by commas:')],
+    [sg.InputText('', key='tags')],
     [sg.Checkbox('Save as template?', key='save_as_template', visible=True)],
     [sg.Button('Confirm', key='exec_confirm'), 
      sg.Button('Back', key='exec_back')]
@@ -318,7 +324,7 @@ layout = [
      sg.Column(run_template_layout, visible=False, key='run_template_layout')]
 ]
 
-main_window = sg.Window('CLENV', layout, modal=True, size=(600, 600), element_justification='c')
+main_window = sg.Window('CLENV', layout, modal=True, size=(700, 700), element_justification='c')
 set_active_window('main')
 
 ################################################################################
@@ -498,6 +504,7 @@ while True:
             task_type = main_values['task_types']
             task_name = main_values['task_name']
             path = main_values['path']
+            raw_tags = main_values['tags']
             if check_blank_options(main_values):
                 error_window = create_error_window('one or more options is blank')
             elif not isfile(path):
@@ -514,6 +521,7 @@ while True:
                 remote_url = repo.remotes.origin.url
                 project_name = remote_url.split("/")[-1].split(".")[0]
                 script = get_script_from_path(path)
+                tags = raw_tags.split(',')
                 run_config = {
                         'project_name':project_name,
                         'task_name':task_name,
@@ -522,7 +530,8 @@ while True:
                         'branch':current_branch,
                         'path':path,
                         'script':script,
-                        'queue':queue
+                        'queue':queue,
+                        'tags':tags
                     }
                 if main_values['save_as_template']:  
                     new_template_layout = [
