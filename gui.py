@@ -85,39 +85,22 @@ def get_profile_string(profile_list):
 # creates an action success window
 def action_success():
     main_window['config_options'].update('')
-    action_successful_layout =    [
-                                    [sg.Text('Action completed successfully!')]
-                                ]
+    action_successful_layout = [
+        [sg.Text('Action completed successfully!')]
+    ]
     action_successful_window = sg.Window('', action_successful_layout, modal=True)
     set_active_window('action_successful')
     return action_successful_window
 
 # creates an error window
 def create_error_window(message):
-    error_layout =  [
+    error_layout = [
         [sg.Text(f'Error: {message}', key='error_message')],
         [sg.Button('Back')]
-                    ]
+    ]
     error_window = sg.Window('Error', error_layout, modal=True)
     set_active_window('error')
     return error_window
-
-# gets directory of given file path
-def get_directory_path(path):
-    dir_path = ''
-    path_list = path.split('/')
-    for item in path_list:
-        if item == '':
-            path_list.remove(item)
-    for i in range(len(path_list)-1):
-        dir_path += f'/{path_list[i]}'
-    return dir_path
-
-# returns script name from the path
-def get_script_from_path(path):
-    path_list = path.split('/')
-    path_list.reverse()
-    return path_list[0]
 
 # returns a list of template names for the run templates menu
 def get_template_names(current_templates):
@@ -171,7 +154,7 @@ sg.LOOK_AND_FEEL_TABLE['clearML'] = {
     'BUTTON': ('#ffffff', '#384161'),
     'PROGRESS': ('#ffffff', '#384161'),
     'BORDER': 1, 'SLIDER_DEPTH': 0, 
-    'PROGRESS_DEPTH': 0
+    'PROGRESS_DEPTH': 0,
 }
 
 sg.theme('clearML')
@@ -259,7 +242,7 @@ config_layout = [
 config_checkout_layout = [
     [sg.Text('Select a profile to checkout:')],
     [sg.Text(f'Active Profile: {active_profile}', key='checkout_active_profile')],
-    [sg.OptionMenu(non_active_profiles, key='checkout_non_active_profiles')],
+    [sg.OptionMenu([{}], key='checkout_non_active_profiles')],
     [sg.Button('Confirm', key='config_checkout_confirm'), 
      sg.Button('Back', key='config_checkout_back')]
 ]
@@ -273,7 +256,7 @@ config_create_layout = [
 
 config_delete_layout = [
     [sg.Text('Select a profile to delete:')],
-    [sg.OptionMenu(non_active_profiles, key='delete_non_active_profiles')],
+    [sg.OptionMenu([{}], key='delete_non_active_profiles')],
     [sg.Button('Confirm', key='config_delete_confirm'),
      sg.Button('Back', key='config_delete_back')]
 ]
@@ -314,7 +297,7 @@ layout = [
     [sg.Text('')],
     [sg.Image('./logo.png')],
     [sg.Text('')],
-    [sg.Column(main_layout, key='main_layout'), 
+    [sg.Column(main_layout, key='main_layout'),
      sg.Column(exec_layout, visible=False, key='exec_layout'), 
      sg.Column(exec_complete_layout, visible=False, key='exec_complete_layout'),
      sg.Column(config_layout, visible=False, key='config_layout'),
@@ -515,7 +498,7 @@ while True:
             else:
                 queue, num_idle_workers, total_workers = get_queue_info(raw_queue_info)
                 try:
-                    dir_path = get_directory_path(path)
+                    dir_path = os.path.dirname(path)
                     repo = Repo(f'{dir_path}')
                 except:
                     error_window = create_error_window('no git repository detected \nat specified file directory')
@@ -523,7 +506,7 @@ while True:
                 current_branch = repo.head.reference.name
                 remote_url = repo.remotes.origin.url
                 project_name = remote_url.split("/")[-1].split(".")[0]
-                script = get_script_from_path(path)
+                script = os.path.basename(path)
                 tags = raw_tags.split(',')
                 run_config = {
                         'project_name':project_name,
