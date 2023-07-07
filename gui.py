@@ -1,5 +1,4 @@
 import PySimpleGUI as sg
-
 from clearml import Task
 from clearml.backend_interface.task.populate import CreateAndPopulate
 from clenv.cli.queue.queue_manager import QueueManager
@@ -163,30 +162,34 @@ def exec_config(run_config):
 ######                          Initialization                            ######
 ################################################################################
 
-sg.LOOK_AND_FEEL_TABLE['clearML'] = {'BACKGROUND': '#1A1E2C',
-                                     'TEXT': '#ffffff',
-                                     'INPUT': '#384161',
-                                     'TEXT_INPUT': '#ffffff',
-                                     'SCROLL': '#ffffff',
-                                     'BUTTON': ('#ffffff', '#384161'),
-                                     'PROGRESS': ('#ffffff', '#384161'),
-                                     'BORDER': 1, 'SLIDER_DEPTH': 0, 
-                                     'PROGRESS_DEPTH': 0}
+sg.LOOK_AND_FEEL_TABLE['clearML'] = {
+    'BACKGROUND': '#1A1E2C',
+    'TEXT': '#ffffff',
+    'INPUT': '#384161',
+    'TEXT_INPUT': '#ffffff',
+    'SCROLL': '#ffffff',
+    'BUTTON': ('#ffffff', '#384161'),
+    'PROGRESS': ('#ffffff', '#384161'),
+    'BORDER': 1, 'SLIDER_DEPTH': 0, 
+    'PROGRESS_DEPTH': 0
+}
 
 sg.theme('clearML')
 
 queue_list = get_queue_list()
-task_types = ["training",
-             "testing",
-             "inference",
-             "data_processing",
-             "application",
-             "monitor",
-             "controller",
-             "optimizer",
-             "service",
-             "qc",
-             "other",]
+task_types = [
+    "training",
+    "testing",
+    "inference",
+    "data_processing",
+    "application",
+    "monitor",
+    "controller",
+    "optimizer",
+    "service",
+    "qc",
+    "other"
+]
 task_id = ''
 queue = ''
 URL = ''
@@ -228,7 +231,7 @@ exec_layout = [
     [sg.Text('')],
     [sg.Text('Enter tags separated by commas:')],
     [sg.InputText('', key='tags')],
-    [sg.Checkbox('Save as template?', key='save_as_template', visible=True)],
+    [sg.Checkbox('Save as template?', key='save_as_template')],
     [sg.Button('Confirm', key='exec_confirm'), 
      sg.Button('Back', key='exec_back')]
 ]
@@ -362,7 +365,8 @@ while True:
         # config controllers
         if main_event == 'config_confirm':
             option = main_values['config_options']
-
+            if option == '':
+                continue
             # option_layout is the string key associated with the layout of the option selected in the dropdown menu
             option_layout = f'config_{option.split(" ")[0].lower()}_layout'
 
@@ -394,6 +398,7 @@ while True:
             main_window['config_layout'].update(visible=False)
             main_window[option_layout].update(visible=True)
         if main_event == 'config_back':
+            main_window['config_options'].update('')
             main_window['config_layout'].update(visible=False)
             main_window['main_layout'].update(visible=True)
         for option_back in ['config_checkout_back',
@@ -454,7 +459,6 @@ while True:
         # run template controllers
         if main_event == 'run_template_new':
             main_window['save_as_template'].update(False)
-            main_window['save_as_template'].update(visible=True)
             main_window['run_template_layout'].update(visible=False)
             main_window['exec_layout'].update(visible=True)
         if main_event == 'run_template_template':
@@ -470,7 +474,6 @@ while True:
                 main_window['task_name'].update(f'{template["task_name"]}')
                 main_window['path'].update(f'{template["path"]}')
                 main_window['save_as_template'].update(False)
-                main_window['save_as_template'].update(visible=False)
                 main_window['run_template_layout'].update(visible=False)
                 main_window['exec_layout'].update(visible=True)
             else:
@@ -482,7 +485,7 @@ while True:
                     current_templates = json.load(f)
                 current_templates.pop(template_name)
                 with open("task_templates.json", "w") as f:
-                    json.dump(current_templates, f)
+                    json.dump(current_templates, f, indent=4)
                 template_names = get_template_names(current_templates)
                 main_window['template_chosen'].update(values=template_names)
             else:
