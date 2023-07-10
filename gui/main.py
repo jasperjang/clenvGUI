@@ -8,138 +8,20 @@ from clenv.cli.config.config_manager import ConfigManager
 import webbrowser as wb
 import os, json
 
-################################################################################
-######                         Helper Functions                           ######
-################################################################################
-
-# returns readable list of available queues
-def get_queue_list():
-    queue_manager = QueueManager()
-    available_queues = queue_manager.get_available_queues()
-    queue_list = []
-    for queue in available_queues:
-        queue_list.append(f"{queue['name']} - idle workers: {[worker['name'] for worker in queue['workers'] if worker['task'] is None]} - total workers: {len(queue['workers'])}")
-    return queue_list
-
-# returns queue name, number of idle workers, and total number of workers from the queue_list format above
-def get_queue_info(queue_list_item):
-    L = queue_list_item.split(' ')
-    queue = L[0]
-    num_idle_workers = len(L[4])
-    total_workers = int(L[-1])
-    return queue, num_idle_workers, total_workers
-
-def get_queue_from_name(name, queue_list):
-    for queue in queue_list:
-        split_queue = queue.split(' ')
-        if split_queue[0] == name:
-            return queue
-
-# checks if any values in the dictionary are empty
-def check_blank_options(values):
-    if (values['queue_list'] == '' or
-        values['task_types'] == '' or
-        values['task_name'] == '' or
-        len(values['path']) <= 2):
-        return True
-    return False
-
-window_activity = {'main':False,
-                  'error':False,
-                  'new_config':False,
-                  'action_successful':False,
-                  'new_template':False}
-
-# sets active window to the inputted window name
-def set_active_window(window_name):
-    for window in window_activity:
-        if window == window_name:
-            window_activity[window] = True
-        else:
-            window_activity[window] = False
-
-# returns just the profile names from the list of non active profiles
-def get_non_active_profile_names(non_active_profiles):
-    non_active_profile_names = []
-    for profile in non_active_profiles:
-        non_active_profile_names.append(profile['profile_name'])
-    return non_active_profile_names
-
-# returns list of profile names
-def get_profile_list(active_profile, non_active_profiles):
-    profile_list = [active_profile['profile_name']]
-    for profile in non_active_profiles:
-        profile_list.append(profile["profile_name"])
-    return profile_list
-
-# returns string of profiles from the list of profile names
-def get_profile_string(profile_list):
-    profile_string = ''
-    for profile_index in range(len(profile_list)):
-        if profile_index == 0:
-            profile_string += f'{profile_list[0]} <active>\n'
-        else:
-            profile_string += f'{profile_list[profile_index]}\n'
-    return profile_string
-
-# creates an action success window
-def action_success():
-    main_window['config_options'].update('')
-    action_successful_layout = [
-        [sg.Text('Action completed successfully!')]
-    ]
-    action_successful_window = sg.Window('', action_successful_layout, modal=True)
-    set_active_window('action_successful')
-    return action_successful_window
-
-# creates an error window
-def create_error_window(message):
-    error_layout = [
-        [sg.Text(f'Error: {message}', key='error_message')],
-        [sg.Button('Back')]
-    ]
-    error_window = sg.Window('Error', error_layout, modal=True)
-    set_active_window('error')
-    return error_window
-
-# returns a list of template names for the run templates menu
-def get_template_names(current_templates):
-    template_names = []
-    for key in current_templates:
-        template_names.append(key)
-    return template_names 
-
-# executes the configuration from the run config
-def exec_config(run_config):
-    project_name = run_config['project_name']
-    task_name = run_config['task_name']
-    task_type = run_config['task_type']
-    remote_url = run_config['repo']
-    current_branch = run_config['branch']
-    path = run_config['path']
-    script = run_config['script']
-    queue = run_config['queue']
-    tags = run_config['tags']
-    create_populate = CreateAndPopulate(
-        project_name=project_name,
-        task_name=task_name,
-        task_type=task_type,
-        repo=remote_url,
-        branch=current_branch,
-        script=script,
-        verbose=True,
-    )
-    create_populate.create_task()
-    create_populate.task._set_runtime_properties({"_CLEARML_TASK": True})
-    task_id = create_populate.get_id()
-    Task.enqueue(create_populate.task, queue_name=queue)
-    if tags != ['']:
-        create_populate.task.set_tags(tags)
-    main_window['exec_complete_text1'].update(f"New task created id={task_id}")
-    main_window['exec_complete_text2'].update(f"Task id={task_id} sent for execution on queue {queue}")
-    main_window['exec_layout'].update(visible=False)
-    main_window['exec_complete_layout'].update(visible=True)
-    return create_populate.task
+from utils import (
+    get_queue_list,
+    get_queue_info,
+    get_queue_from_name,
+    check_blank_options,
+    set_active_window,
+    get_non_active_profile_names,
+    get_profile_list,
+    get_profile_string,
+    action_success,
+    create_error_window,
+    get_template_names,
+    exec_config
+)
 
 ################################################################################
 ######                          Initialization                            ######
@@ -160,6 +42,12 @@ sg.LOOK_AND_FEEL_TABLE['clearML'] = {
 sg.theme('clearML')
 
 config_manager = ConfigManager('~/.clenv-config-index.json')
+
+window_activity = {'main':True,
+                  'error':False,
+                  'new_config':False,
+                  'action_successful':False,
+                  'new_template':False}
 
 from layouts import (
     main_layout, 
@@ -194,17 +82,20 @@ layout = [
 ]
 
 main_window = sg.Window('CLENV', layout, modal=True, size=(700, 700), element_justification='c')
-set_active_window('main')
 
 ################################################################################
 ######                             Main Loop                              ######
 ################################################################################
 
 while True:
+
+    ######################### MAIN WINDOW CONTROLLERS ##########################
     if window_activity['main']:
         main_event, main_values = main_window.read()
         if main_event == sg.WIN_CLOSED: # if user closes window or clicks cancel
             break
+
+        # main menu controllers
         if main_event == 'task_exec':
             if not isfile('./task_templates.json'):
                 with open('task_templates.json', 'w') as f:
@@ -223,7 +114,7 @@ while True:
                     [sg.Button('Confirm')]
                 ]
                 new_config_window = sg.Window('Profile Creation', new_config_layout, modal=True)
-                set_active_window('new_config')
+                window_activity = set_active_window('new_config', window_activity)
             else:
                 main_window['main_layout'].update(visible=False)
                 main_window['config_layout'].update(visible=True)
@@ -281,34 +172,34 @@ while True:
             profileName = main_values['checkout_non_active_profiles']
             if config_manager.has_profile(profile_name=profileName):
                 config_manager.set_active_profile(profileName)
-                action_successful_window = action_success()
+                action_successful_window = action_success(main_window, window_activity)
                 main_window['config_checkout_layout'].update(visible=False)
                 main_window['config_layout'].update(visible=True)
         if main_event == 'config_create_confirm':
             new_profile_name = main_values['new_profile_name']
             if config_manager.has_profile(profile_name=new_profile_name):
-                error_window = create_error_window('profile already exists')
+                error_window, window_activity = create_error_window('profile already exists', window_activity)
             else:
                 config_manager.create_profile(new_profile_name)
-                action_successful_window = action_success()
+                action_successful_window = action_success(main_window, window_activity)
                 main_window['config_create_layout'].update(visible=False)
                 main_window['config_layout'].update(visible=True)
         if main_event == 'config_delete_confirm':
             profile_to_delete = main_values['delete_non_active_profiles']
             config_manager.delete_profile(profile_to_delete)
-            action_successful_window = action_success()
+            action_successful_window = action_success(main_window, window_activity)
             main_window['config_delete_layout'].update(visible=False)
             main_window['config_layout'].update(visible=True)
         if main_event == 'config_rename_confirm':
             profile_to_rename = main_values['profile_list_menu']
             profile_rename = main_values['profile_rename']
             if profile_rename in profile_list:
-                error_window = create_error_window('profile name is already taken')
+                error_window, window_activity = create_error_window('profile name is already taken', window_activity)
             elif profile_to_rename == '' or profile_rename == '':
-                error_window = create_error_window('one or more options is blank')
+                error_window, window_activity = create_error_window('one or more options is blank', window_activity)
             else:
                 config_manager.rename_profile(profile_to_rename, profile_rename)
-                action_successful_window = action_success()
+                action_successful_window = action_success(main_window, window_activity)
                 main_window['config_rename_layout'].update(visible=False)
                 main_window['config_layout'].update(visible=True)
         if main_event == 'config_configure_confirm':
@@ -316,11 +207,11 @@ while True:
             config = main_values['multiline_config']
             try:
                 config_manager.reinitialize_api_config(profile_to_config, config)
-                action_successful_window = action_success()
+                action_successful_window = action_success(main_window, window_activity)
                 main_window['config_configure_layout'].update(visible=False)
                 main_window['config_layout'].update(visible=True)
             except:
-                error_window = create_error_window('invalid configuration format')
+                error_window, window_activity = create_error_window('invalid configuration format', window_activity)
 
         # run template controllers
         if main_event == 'run_template_new':
@@ -347,7 +238,7 @@ while True:
                 main_window['run_template_layout'].update(visible=False)
                 main_window['exec_layout'].update(visible=True)
             else:
-                error_window = create_error_window('no template selected')
+                error_window, window_activity = create_error_window('no template selected', window_activity)
         if main_event == 'run_template_delete':
             if main_values['template_chosen'] != {} and main_values['template_chosen'] != []:
                 template_name = main_values['template_chosen'][0]
@@ -359,7 +250,7 @@ while True:
                 template_names = get_template_names(current_templates)
                 main_window['template_chosen'].update(values=template_names)
             else:
-                error_window = create_error_window('no template selected')
+                error_window, window_activity = create_error_window('no template selected', window_activity)
         if main_event == 'run_template_back':
             main_window['run_template_layout'].update(visible=False)
             main_window['main_layout'].update(visible=True)
@@ -379,16 +270,16 @@ while True:
             path = main_values['path']
             raw_tags = main_values['tags']
             if check_blank_options(main_values):
-                error_window = create_error_window('one or more options is blank')
+                error_window, window_activity = create_error_window('one or more options is blank', window_activity)
             elif not isfile(path):
-                error_window = create_error_window('must input valid path')
+                error_window, window_activity = create_error_window('must input valid path', window_activity)
             else:
                 queue, num_idle_workers, total_workers = get_queue_info(raw_queue_info)
                 try:
                     dir_path = os.path.dirname(path)
                     repo = Repo(f'{dir_path}')
                 except:
-                    error_window = create_error_window('no git repository detected \nat specified file directory')
+                    error_window, window_activity = create_error_window('no git repository detected \nat specified file directory', window_activity)
                 # Read the git information from current directory
                 current_branch = repo.head.reference.name
                 remote_url = repo.remotes.origin.url
@@ -413,9 +304,9 @@ while True:
                         [sg.Button('Confirm')]
                     ]
                     new_template_window = sg.Window('Template Creation', new_template_layout, modal=True)
-                    set_active_window('new_template')
+                    window_activity = set_active_window('new_template', window_activity)
                 else:
-                    task = exec_config(run_config)
+                    task = exec_config(run_config, main_window)
                     URL = task.get_output_log_web_page()
         if main_event == 'exec_complete_URL':
             wb.open(URL)
@@ -427,15 +318,8 @@ while True:
             main_window['save_as_template'].update(False)
             main_window['exec_complete_layout'].update(visible=False)
             main_window['run_template_layout'].update(visible=True)
-
-    # error controllers
-    if window_activity['error']:
-        error_event, error_values = error_window.read()
-        if error_event == 'Back' or error_event == sg.WIN_CLOSED:
-            set_active_window('main')
-            error_window.close()
     
-    # new_config controllers
+    ###################### NEW CONFIG WINDOW CONTROLLERS #######################
     if window_activity['new_config']:
         new_config_event, new_config_values = new_config_window.read()
         if new_config_event == 'Confirm':
@@ -444,13 +328,13 @@ while True:
             non_active_profiles = config_manager.get_non_active_profiles()
             main_window['main_layout'].update(visible=False)
             main_window['config_layout'].update(visible=True)
-            set_active_window('main')
+            window_activity = set_active_window('main', window_activity)
             new_config_window.close()
         if new_config_event == sg.WIN_CLOSED:
-            set_active_window('main')
+            window_activity = set_active_window('main', window_activity)
             new_config_window.close()
 
-    # new template controllers
+    ##################### NEW TEMPLATE WINDOW CONTROLLERS ######################
     if window_activity['new_template']:
         new_template_event, new_template_values = new_template_window.read()
         if new_template_event == 'Confirm':
@@ -462,18 +346,26 @@ while True:
                 json.dump(current_templates, f, indent=4)
             template_names = get_template_names(current_templates)
             main_window['template_chosen'].update(values=template_names)
-            set_active_window('main')
+            window_activity = set_active_window('main', window_activity)
             new_template_window.close()
-            task = exec_config(run_config)
+            task = exec_config(run_config, main_window)
             URL = task.get_output_log_web_page()
         if new_template_event == sg.WIN_CLOSED:
-            set_active_window('main')
+            window_activity = set_active_window('main', window_activity)
             new_template_window.close()
 
+    ######################### ERROR WINDOW CONTROLLERS #########################
+    if window_activity['error']:
+        error_event, error_values = error_window.read()
+        if error_event == 'Back' or error_event == sg.WIN_CLOSED:
+            window_activity = set_active_window('main', window_activity)
+            error_window.close()
+
+    ################### ACTION SUCCESSFUL WINDOW CONTROLLERS ###################
     if window_activity['action_successful']:
         action_successful_event, action_successful_values = action_successful_window.read()
         if action_successful_event == sg.WIN_CLOSED:
-            set_active_window('main')
+            window_activity = set_active_window('main', window_activity)
             action_successful_window.close()
 
 main_window.close()
