@@ -18,13 +18,13 @@ C:/path/to/pyinstaller.exe --onefile gui.py
 1. First pip install pyinstaller using a terminal
 
 ```
-pip install pyinstaller
+$ pip install pyinstaller
 ```
 
 2. Then cd into the clenvGUI directory and run the following command in the terminal:
 
 ```
-pyinstaller --onefile gui.py
+$ pyinstaller --onefile gui.py
 ```
 
 3. Once pyinstaller is finished, the .exe file should be located under the dist directory
