@@ -2,11 +2,6 @@ import PySimpleGUI as sg
 from clearml import Task
 from clearml.backend_interface.task.populate import CreateAndPopulate
 from clenv.cli.queue.queue_manager import QueueManager
-from git import Repo
-from os.path import isfile
-from clenv.cli.config.config_manager import ConfigManager
-import webbrowser as wb
-import os, json
 
 ################################################################################
 ######                         Helper Functions                           ######

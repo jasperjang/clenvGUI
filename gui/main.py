@@ -1,7 +1,4 @@
 import PySimpleGUI as sg
-from clearml import Task
-from clearml.backend_interface.task.populate import CreateAndPopulate
-from clenv.cli.queue.queue_manager import QueueManager
 from git import Repo
 from os.path import isfile
 from clenv.cli.config.config_manager import ConfigManager
@@ -65,6 +62,8 @@ layout = [
 main_window = ActiveWindow(sg.Window('CLENV', layout, modal=True, size=(700, 700), element_justification='c'), active=True)
 
 windows = {main_window.name:main_window}
+
+URL = ''
 
 def main(main_event, main_values):
     global windows
@@ -282,6 +281,7 @@ def main(main_event, main_values):
                 windows['CLENV'].set_inactive()
             else:
                 task = exec_config(run_config, main_window.window)
+                global URL
                 URL = task.get_output_log_web_page()
     if main_event == 'exec_complete_URL':
         wb.open(URL)
