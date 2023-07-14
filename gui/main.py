@@ -64,6 +64,11 @@ main_window = ActiveWindow(sg.Window('CLENV', layout, modal=True, size=(700, 700
 windows = {main_window.name:main_window}
 
 URL = ''
+run_config = {}
+
+################################################################################
+######                        Window Controllers                          ######
+################################################################################
 
 def main(main_event, main_values):
     global windows
@@ -259,6 +264,7 @@ def main(main_event, main_values):
             project_name = remote_url.split("/")[-1].split(".")[0]
             script = os.path.basename(path)
             tags = raw_tags.split(',')
+            global run_config
             run_config = {
                     'project_name':project_name,
                     'task_name':task_name,
@@ -300,31 +306,31 @@ def new_config(new_config_event, new_config_values):
     if new_config_event == 'Confirm' or new_config_event == sg.WIN_CLOSED:
         if new_config_event == 'Confirm':
             config_manager.initialize_profile(f'{new_config_values[0]}')
-            active_profiles = config_manager.get_active_profile()
-            non_active_profiles = config_manager.get_non_active_profiles()
-            main_window['main_layout'].update(visible=False)
-            main_window['config_layout'].update(visible=True)
+            windows['CLENV'].window['main_layout'].update(visible=False)
+            windows['CLENV'].window['config_layout'].update(visible=True)
+        
+        windows['Profile Configuration'].window.close()
+        windows.pop('Profile Configuration')
         windows['CLENV'].set_active()
-        windows['Profile Configuration'].close()
-        windows.remove('Profile Configuration')
 
 def new_template(new_template_event, new_template_values):
     global windows
+    global run_config
     if new_template_event == 'Confirm' or new_template_event == sg.WIN_CLOSED:
         if new_template_event == 'Confirm':
             template_name = new_template_values[0]
             with open("task_templates.json", "r") as f:
                 current_templates = json.load(f)
-            run_config = current_templates[template_name]
+            current_templates[template_name] = run_config
             with open("task_templates.json", "w") as f:
                 json.dump(current_templates, f, indent=4)
             template_names = get_template_names(current_templates)
-            main_window['template_chosen'].update(values=template_names)
-            task = exec_config(run_config, main_window)
+            windows['CLENV'].window['template_chosen'].update(values=template_names)
+            task = exec_config(run_config, windows['CLENV'].window)
             URL = task.get_output_log_web_page()
+        windows['Template Creation'].window.close()
+        windows.pop('Template Creation')
         windows['CLENV'].set_active()
-        windows['Template Creation'].close()
-        windows.remove('Template Creation')
 
 def error(error_event, error_values):
     global windows
@@ -348,9 +354,7 @@ while True:
     window = get_active_window(windows)
     event, values = window.window.read()
     if window.name == 'CLENV':
-        if main(event, values):
-            continue
-        else:
+        if not main(event, values):
             break
     elif window.name == 'Profile Configuration':
         new_config(event, values)
