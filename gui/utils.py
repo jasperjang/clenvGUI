@@ -12,6 +12,26 @@ import os, json
 ######                         Helper Functions                           ######
 ################################################################################
 
+class ActiveWindow():
+    def __init__(self, window, active):
+        self.name = window.Title
+        self.window = window
+        self.active = active
+
+    def __repr__(self):
+        return str(self.active)
+
+    def set_active(self):
+        self.active = True
+
+    def set_inactive(self):
+        self.active = False
+
+def get_active_window(windows):
+    for window in windows.values():
+        if window.active:
+            return window
+
 # returns readable list of available queues
 def get_queue_list():
     queue_manager = QueueManager()
@@ -44,15 +64,6 @@ def check_blank_options(values):
         return True
     return False
 
-# sets active window to the inputted window name
-def set_active_window(window_name, window_activity):
-    for window in window_activity:
-        if window == window_name:
-            window_activity[window] = True
-        else:
-            window_activity[window] = False
-    return window_activity
-
 # returns just the profile names from the list of non active profiles
 def get_non_active_profile_names(non_active_profiles):
     non_active_profile_names = []
@@ -78,24 +89,26 @@ def get_profile_string(profile_list):
     return profile_string
 
 # creates an action success window
-def action_success(main_window, window_activity):
+def action_success(main_window, windows):
     main_window['config_options'].update('')
     action_successful_layout = [
         [sg.Text('Action completed successfully!')]
     ]
-    action_successful_window = sg.Window('', action_successful_layout, modal=True)
-    window_activity, set_active_window('action_successful', window_activity)
-    return action_successful_window
+    action_successful_window = ActiveWindow(sg.Window('Action Successful', action_successful_layout, modal=True), active=True)
+    windows[action_successful_window.name] = action_successful_window
+    windows['CLENV'].set_inactive()
+    return windows
 
 # creates an error window
-def create_error_window(message, window_activity):
+def create_error_window(message, windows):
     error_layout = [
         [sg.Text(f'Error: {message}', key='error_message')],
         [sg.Button('Back')]
     ]
-    error_window = sg.Window('Error', error_layout, modal=True)
-    window_activity = set_active_window('error', window_activity)
-    return error_window, window_activity
+    error_window = ActiveWindow(sg.Window('Error', error_layout, modal=True), active=True)
+    windows[error_window.name] = error_window
+    windows['CLENV'].set_inactive()
+    return windows
 
 # returns a list of template names for the run templates menu
 def get_template_names(current_templates):
