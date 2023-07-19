@@ -22,7 +22,7 @@ py -m pip install -r requirements.txt
 3. Open the the following file in VScode
 
 ```
-code .\clenv_env\Lib\orderedmultidict\__init__.py
+code .\clenv_env\Lib\site-packages\orderedmultidict\__init__.py
 ```
 
 4. Replace the contents of __init__.py with the following code
@@ -84,7 +84,7 @@ pip install -r requirements.txt
 3. Open the the following file in VScode
 
 ```
-code ./clenv_env/Lib/orderedmultidict/__init__.py
+code ./clenv_env/lib/python3.10/site-packages/orderedmultidict/__init__.py
 ```
 
 4. Replace the contents of __init__.py with the following code
