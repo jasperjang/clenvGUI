@@ -73,7 +73,6 @@ def main(main_event, main_values):
     if main_event == 'task_exec':
         app.task_exec()
     if main_event == 'config':
-        global config_manager
         app.config()
     
     # config controllers

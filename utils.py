@@ -313,7 +313,12 @@ def get_queue_list():
     available_queues = queue_manager.get_available_queues()
     queue_list = []
     for queue in available_queues:
-        queue_list.append(f"{queue['name']} - idle workers: {[worker['name'] for worker in queue['workers'] if worker['task'] is None]} - total workers: {len(queue['workers'])}")
+        name = queue['name']
+        idle_workers = [worker['name'] for worker in queue['workers'] if worker['task'] is None]
+        if idle_workers == []:
+            idle_workers = 'NONE'
+        total_workers = len(queue['workers'])
+        queue_list.append(f"{name} - idle workers: {idle_workers} - total workers: {total_workers}")
     return queue_list
 
 # returns queue name, number of idle workers, and total number of workers from the queue_list format above
