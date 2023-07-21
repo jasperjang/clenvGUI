@@ -22,10 +22,12 @@ main_layout = [
 run_template_layout = [
     [sg.Text('Select a template or run new:')],
     [sg.Listbox(['No templates created'], key='template_chosen', size=(60,9))],
-    [sg.Button('Run New', key='run_template_new'),
-     sg.Button('Run Template', key='run_template_template'),
-     sg.Button('Delete Template', key='run_template_delete'),
-     sg.Button('Back', key='run_template_back')]
+    [
+        sg.Button('Run New', key='run_template_new'),
+        sg.Button('Run Template', key='run_template_template'),
+        sg.Button('Delete Template', key='run_template_delete'),
+        sg.Button('Back', key='run_template_back')
+    ]
 ]
 
 exec_layout = [
@@ -44,8 +46,10 @@ exec_layout = [
     [sg.Text('Enter tags separated by commas:')],
     [sg.InputText('', key='tags')],
     [sg.Checkbox('Save as template?', key='save_as_template')],
-    [sg.Button('Confirm', key='exec_confirm'), 
-     sg.Button('Back', key='exec_back')]
+    [
+        sg.Button('Confirm', key='exec_confirm'), 
+        sg.Button('Back', key='exec_back')
+    ]
 ]
 
 exec_complete_layout = [
@@ -64,30 +68,38 @@ config_layout = [
                     'List of Profiles',
                     'Rename a Profile',
                     'Configure API Path'], key='config_options')],
-    [sg.Button('Confirm', key='config_confirm'), 
-     sg.Button('Back', key='config_back')]
+    [
+        sg.Button('Confirm', key='config_confirm'), 
+        sg.Button('Back', key='config_back')
+    ]
 ]
 
 config_checkout_layout = [
     [sg.Text('Select a profile to checkout:')],
     [sg.Text(f'Active Profile: {"active_profile"}', key='checkout_active_profile')],
     [sg.OptionMenu([{}], key='checkout_non_active_profiles')],
-    [sg.Button('Confirm', key='config_checkout_confirm'), 
-     sg.Button('Back', key='config_checkout_back')]
+    [
+        sg.Button('Confirm', key='config_checkout_confirm'), 
+        sg.Button('Back', key='config_checkout_back')
+    ]
 ]
 
 config_create_layout = [
     [sg.Text('Enter a new profile name:')],
     [sg.InputText('', key='new_profile_name')],
-    [sg.Button('Confirm', key='config_create_confirm'),
-     sg.Button('Back', key='config_create_back')]
+    [
+        sg.Button('Confirm', key='config_create_confirm'),
+        sg.Button('Back', key='config_create_back')
+    ]
 ]
 
 config_delete_layout = [
     [sg.Text('Select a profile to delete:')],
     [sg.OptionMenu([{}], key='delete_non_active_profiles')],
-    [sg.Button('Confirm', key='config_delete_confirm'),
-     sg.Button('Back', key='config_delete_back')]
+    [
+        sg.Button('Confirm', key='config_delete_confirm'),
+        sg.Button('Back', key='config_delete_back')
+    ]
 ]
 
 config_list_layout = [
@@ -102,8 +114,10 @@ config_rename_layout = [
     [sg.Text('')],
     [sg.Text('Enter a new name:')],
     [sg.InputText('', key='profile_rename')],
-    [sg.Button('Confirm', key='config_rename_confirm'),
-     sg.Button('Back', key='config_rename_back')]
+    [
+        sg.Button('Confirm', key='config_rename_confirm'),
+        sg.Button('Back', key='config_rename_back')
+    ]
 ]
 
 config_configure_layout = [
@@ -117,6 +131,8 @@ clicking the button in the top right corner, then
 settings > workspace > create new credentials
              ''')],
     [sg.Multiline('', key='multiline_config', size=(60,9))],
-    [sg.Button('Confirm', key='config_configure_confirm'),
-     sg.Button('Back', key='config_configure_back')]
+    [
+        sg.Button('Confirm', key='config_configure_confirm'),
+        sg.Button('Back', key='config_configure_back')
+    ]
 ]
