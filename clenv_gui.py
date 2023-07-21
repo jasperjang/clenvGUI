@@ -1,8 +1,6 @@
 import PySimpleGUI as sg
 from clenv.cli.config.config_manager import ConfigManager
 import webbrowser as wb
-import json
-
 from utils import *
 
 ################################################################################
@@ -22,11 +20,11 @@ sg.LOOK_AND_FEEL_TABLE['clearML'] = {
     'PROGRESS_DEPTH': 0,
 }
 sg.theme('clearML')
+sg.set_options(font=('Arial', 14))
 
 # import layouts from layouts.py
 from layouts import (
     main_layout, 
-    run_template_layout, 
     exec_layout, 
     exec_complete_layout, 
     config_layout, 
@@ -43,24 +41,26 @@ layout = [
     [sg.Text('')],
     [sg.Image('./logo.png')],
     [sg.Text('')],
-    # [sg.Menu('Menu')],
-    [sg.Column(main_layout, key='main_layout'),
-     sg.Column(exec_layout, visible=False, key='exec_layout'), 
-     sg.Column(exec_complete_layout, visible=False, key='exec_complete_layout'),
-     sg.Column(config_layout, visible=False, key='config_layout'),
-     sg.Column(config_checkout_layout, visible=False, key='config_checkout_layout'),
-     sg.Column(config_create_layout, visible=False, key='config_create_layout'),
-     sg.Column(config_delete_layout, visible=False, key='config_delete_layout'),
-     sg.Column(config_list_layout, visible=False, key='config_list_layout'),
-     sg.Column(config_rename_layout, visible=False, key='config_rename_layout'),
-     sg.Column(config_configure_layout, visible=False, key='config_configure_layout'),
-     sg.Column(run_template_layout, visible=False, key='run_template_layout')]
+    [
+        sg.Column(main_layout, visible=True, key='main_layout'),
+        sg.Column(exec_layout, visible=False, key='exec_layout'), 
+        sg.Column(exec_complete_layout, visible=False, key='exec_complete_layout'),
+        sg.Column(config_layout, visible=False, key='config_layout'),
+        sg.Column(config_checkout_layout, visible=False, key='config_checkout_layout'),
+        sg.Column(config_create_layout, visible=False, key='config_create_layout'),
+        sg.Column(config_delete_layout, visible=False, key='config_delete_layout'),
+        sg.Column(config_list_layout, visible=False, key='config_list_layout'),
+        sg.Column(config_rename_layout, visible=False, key='config_rename_layout'),
+        sg.Column(config_configure_layout, visible=False, key='config_configure_layout')
+    ]
 ]
 
-window = sg.Window('CLENV', layout, modal=True, size=(700, 700), element_justification='c')
+window = sg.Window('CLENV', layout, modal=True, size=(700, 750), 
+                   element_justification='c', finalize=True)
 
 # init the app, which takes window, config_manager, URL, and run_config params
 app = App(window, ConfigManager('~/.clenv-config-index.json'), '', {})
+app.task_exec()
 
 ################################################################################
 ######                             Main Loop                              ######
@@ -68,11 +68,15 @@ app = App(window, ConfigManager('~/.clenv-config-index.json'), '', {})
 
 while True:
     event, values = app.window.read()
-    if event == sg.WIN_CLOSED: # if user closes window or clicks cancel
+    if event == 'quit' or event == sg.WIN_CLOSED: # if user closes window or clicks cancel
         break
     # main menu controllers
-    if event == 'task_exec':
-        app.task_exec()
+    if event == 'run_template_new':
+        app.run_template_new()
+    if event == 'run_template_template':
+        app.run_template_template(values)
+    if event == 'run_template_delete':
+        app.run_template_delete(values)
     if event == 'config':
         app.config()
     
@@ -99,16 +103,6 @@ while True:
         app.config_rename_confirm(values)
     if event == 'config_configure_confirm':
         app.config_configure_confirm(values)
-        
-    # run template controllers
-    if event == 'run_template_new':
-        app.run_template_new()
-    if event == 'run_template_template':
-        app.run_template_template(values)
-    if event == 'run_template_delete':
-        app.run_template_delete(values)
-    if event == 'run_template_back':
-        app.run_template_back()
 
     # exec controllers
     if event == 'exec_back':

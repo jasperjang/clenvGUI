@@ -46,8 +46,6 @@ class App():
             current_templates = json.load(f)
         template_names = get_template_names(current_templates)
         self.window['template_chosen'].update(values=template_names)
-        self.window['main_layout'].update(visible=False)
-        self.window['run_template_layout'].update(visible=True)
 
     def config(self):
         if not self.config_manager.profile_has_initialized():
@@ -157,7 +155,7 @@ class App():
         queue_list = get_queue_list()
         self.window['queue_list'].update(values=queue_list)
         self.window['save_as_template'].update(False)
-        self.window['run_template_layout'].update(visible=False)
+        self.window['main_layout'].update(visible=False)
         self.window['exec_layout'].update(visible=True)
 
     def run_template_template(self, main_values):
@@ -175,10 +173,10 @@ class App():
             self.window['task_name'].update(f'{template["task_name"]}')
             self.window['path'].update(f'{template["path"]}')
             self.window['save_as_template'].update(False)
-            self.window['run_template_layout'].update(visible=False)
+            self.window['main_layout'].update(visible=False)
             self.window['exec_layout'].update(visible=True)
         else:
-            self.create_error_window('no template selected')
+            self.create_error_window('No template selected')
 
     def run_template_delete(self, main_values):
         if main_values['template_chosen'] != {} and main_values['template_chosen'] != []:
@@ -193,17 +191,13 @@ class App():
         else:
             self.create_error_window('no template selected')
 
-    def run_template_back(self):
-        self.window['run_template_layout'].update(visible=False)
-        self.window['main_layout'].update(visible=True)
-
     def exec_back(self):
         with open("task_templates.json", "r") as f:
             current_templates = json.load(f)
         template_names = get_template_names(current_templates)
         self.window['template_chosen'].update(values=template_names)
         self.window['exec_layout'].update(visible=False)
-        self.window['run_template_layout'].update(visible=True)
+        self.window['main_layout'].update(visible=True)
         self.window['queue_list'].update('')
         self.window['task_types'].update('')
         self.window['task_name'].update('')
@@ -269,7 +263,7 @@ class App():
         self.window['path'].update('/')
         self.window['save_as_template'].update(False)
         self.window['exec_complete_layout'].update(visible=False)
-        self.window['run_template_layout'].update(visible=True)
+        self.window['main_layout'].update(visible=True)
 
 ################################################################################
 ######                         Helper Functions                           ######
