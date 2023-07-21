@@ -14,7 +14,7 @@ import os, json
 App class:
 
 To store global variables such as:
-- windows, a dictionary of window name keys pointing to ActiveWindow objects
+- the main window object
 - config_manager, a ConfigManager object built from the clenv config index file
 - URL, the url string for the clearml experiment
 - run_config, a dictionary of information needed to run an experiment in clearml
@@ -23,37 +23,20 @@ Mostly contains functions that modify elements and valulues in the PySimpleGUI
 window
 '''
 class App():
-    def __init__(self, windows, config_manager, URL, run_config):
-        self.windows = windows
-        self.main_window = self.windows['CLENV']
+    def __init__(self, window, config_manager, URL, run_config):
+        self.window = window
         self.config_manager = config_manager
         self.url = URL
         self.run_config = run_config
-    
-    def get_active_window(self):
-        for window in self.windows.values():
-            if window.active:
-                return window
             
     # creates an action success window
     def action_success(self):
-        self.main_window.window['config_options'].update('')
-        action_successful_layout = [
-            [sg.Text('Action completed successfully!')]
-        ]
-        action_successful_window = ActiveWindow(sg.Window('Action Successful', action_successful_layout, modal=True), active=True)
-        self.windows[action_successful_window.name] = action_successful_window
-        self.main_window.set_inactive()
+        sg.popup('Action completed successfully!', title='Action Success!')
+        self.window['config_options'].update('')
 
     # creates an error window
     def create_error_window(self, message):
-        error_layout = [
-            [sg.Text(f'Error: {message}', key='error_message')],
-            [sg.Button('Back')]
-        ]
-        error_window = ActiveWindow(sg.Window('Error', error_layout, modal=True), active=True)
-        self.windows[error_window.name] = error_window
-        self.main_window.set_inactive()
+        sg.popup(message, title='Error')
 
     def task_exec(self):
         if not isfile('./task_templates.json'):
@@ -62,23 +45,19 @@ class App():
         with open("task_templates.json", "r") as f:
             current_templates = json.load(f)
         template_names = get_template_names(current_templates)
-        self.main_window.window['template_chosen'].update(values=template_names)
-        self.main_window.window['main_layout'].update(visible=False)
-        self.main_window.window['run_template_layout'].update(visible=True)
+        self.window['template_chosen'].update(values=template_names)
+        self.window['main_layout'].update(visible=False)
+        self.window['run_template_layout'].update(visible=True)
 
     def config(self):
         if not self.config_manager.profile_has_initialized():
-            new_config_layout = [
-                [sg.Text('Please input a profile name:')],
-                [sg.InputText()],
-                [sg.Button('Confirm')]
-            ]
-            new_config_window = ActiveWindow(sg.Window('Profile Creation', new_config_layout, modal=True), active=True)
-            self.windows[new_config_window.name] = new_config_window
-            self.main_window.set_inactive()
+            profile_name = sg.popup_get_text('Please input a profile name:', title='Profile Creation')
+            self.config_manager.initialize_profile(f'{profile_name}')
+            self.window['main_layout'].update(visible=False)
+            self.window['config_layout'].update(visible=True)
         else:
-            self.main_window.window['main_layout'].update(visible=False)
-            self.main_window.window['config_layout'].update(visible=True)
+            self.window['main_layout'].update(visible=False)
+            self.window['config_layout'].update(visible=True)
 
     def config_confirm(self, main_values):
         option = main_values['config_options']
@@ -92,43 +71,43 @@ class App():
         profile_list = get_profile_list(active_profile, non_active_profiles)
         # reset layout whenever selected
         if option_layout == 'config_checkout_layout':
-            self.main_window.window['checkout_active_profile'].update(f'Active Profile: {active_profile["profile_name"]}')
-            self.main_window.window['checkout_non_active_profiles'].update(values=non_active_profile_names)
+            self.window['checkout_active_profile'].update(f'Active Profile: {active_profile["profile_name"]}')
+            self.window['checkout_non_active_profiles'].update(values=non_active_profile_names)
         elif option_layout == 'config_create_layout':
-            self.main_window.window['new_profile_name'].update('')
+            self.window['new_profile_name'].update('')
         elif option_layout == 'config_delete_layout':
-            self.main_window.window['delete_non_active_profiles'].update(values=non_active_profile_names)
-            self.main_window.window['delete_non_active_profiles'].update('')
+            self.window['delete_non_active_profiles'].update(values=non_active_profile_names)
+            self.window['delete_non_active_profiles'].update('')
         elif option_layout == 'config_list_layout':
             profile_string = get_profile_string(profile_list)
-            self.main_window.window['profile_list'].update(profile_string)
+            self.window['profile_list'].update(profile_string)
         elif option_layout == 'config_rename_layout':
-            self.main_window.window['profile_list_menu'].update(values=profile_list)
-            self.main_window.window['profile_rename'].update('')
+            self.window['profile_list_menu'].update(values=profile_list)
+            self.window['profile_rename'].update('')
         elif option_layout == 'config_configure_layout':
-            self.main_window.window['profile_to_config'].update(values=profile_list)
-            self.main_window.window['profile_to_config'].update('')
-            self.main_window.window['multiline_config'].update('')
-        self.main_window.window['config_layout'].update(visible=False)
-        self.main_window.window[option_layout].update(visible=True)
+            self.window['profile_to_config'].update(values=profile_list)
+            self.window['profile_to_config'].update('')
+            self.window['multiline_config'].update('')
+        self.window['config_layout'].update(visible=False)
+        self.window[option_layout].update(visible=True)
 
     def config_back(self):
-        self.main_window.window['config_options'].update('')
-        self.main_window.window['config_layout'].update(visible=False)
-        self.main_window.window['main_layout'].update(visible=True)
+        self.window['config_options'].update('')
+        self.window['config_layout'].update(visible=False)
+        self.window['main_layout'].update(visible=True)
 
     def option_back(self, option_back):
-        self.main_window.window[f'{option_back.split("back")[0]}layout'].update(visible=False)
-        self.main_window.window['config_options'].update('')
-        self.main_window.window['config_layout'].update(visible=True)
+        self.window[f'{option_back.split("back")[0]}layout'].update(visible=False)
+        self.window['config_options'].update('')
+        self.window['config_layout'].update(visible=True)
 
     def config_checkout_confirm(self, main_values):
         profileName = main_values['checkout_non_active_profiles']
         if self.config_manager.has_profile(profile_name=profileName):
             self.config_manager.set_active_profile(profileName)
             self.action_success()
-            self.main_window.window['config_checkout_layout'].update(visible=False)
-            self.main_window.window['config_layout'].update(visible=True)
+            self.window['config_checkout_layout'].update(visible=False)
+            self.window['config_layout'].update(visible=True)
     
     def config_create_confirm(self, main_values):
         new_profile_name = main_values['new_profile_name']
@@ -137,15 +116,15 @@ class App():
         else:
             self.config_manager.create_profile(new_profile_name)
             self.action_success()
-            self.main_window.window['config_create_layout'].update(visible=False)
-            self.main_window.window['config_layout'].update(visible=True)
+            self.window['config_create_layout'].update(visible=False)
+            self.window['config_layout'].update(visible=True)
 
     def config_delete_confirm(self, main_values):
         profile_to_delete = main_values['delete_non_active_profiles']
         self.config_manager.delete_profile(profile_to_delete)
         self.action_success()
-        self.main_window.window['config_delete_layout'].update(visible=False)
-        self.main_window.window['config_layout'].update(visible=True)
+        self.window['config_delete_layout'].update(visible=False)
+        self.window['config_layout'].update(visible=True)
 
     def config_rename_confirm(self, main_values):
         profile_to_rename = main_values['profile_list_menu']
@@ -160,8 +139,8 @@ class App():
         else:
             self.config_manager.rename_profile(profile_to_rename, profile_rename)
             self.action_success()
-            self.main_window.window['config_rename_layout'].update(visible=False)
-            self.main_window.window['config_layout'].update(visible=True)
+            self.window['config_rename_layout'].update(visible=False)
+            self.window['config_layout'].update(visible=True)
 
     def config_configure_confirm(self, main_values):
         profile_to_config = main_values['profile_to_config']
@@ -169,35 +148,35 @@ class App():
         try:
             self.config_manager.reinitialize_api_config(profile_to_config, config)
             self.action_success()
-            self.main_window.window['config_configure_layout'].update(visible=False)
-            self.main_window.window['config_layout'].update(visible=True)
+            self.window['config_configure_layout'].update(visible=False)
+            self.window['config_layout'].update(visible=True)
         except:
             self.create_error_window('invalid configuration format')
 
     def run_template_new(self):
         queue_list = get_queue_list()
-        self.main_window.window['queue_list'].update(values=queue_list)
-        self.main_window.window['save_as_template'].update(False)
-        self.main_window.window['run_template_layout'].update(visible=False)
-        self.main_window.window['exec_layout'].update(visible=True)
+        self.window['queue_list'].update(values=queue_list)
+        self.window['save_as_template'].update(False)
+        self.window['run_template_layout'].update(visible=False)
+        self.window['exec_layout'].update(visible=True)
 
     def run_template_template(self, main_values):
         if main_values['template_chosen'] != {} and main_values['template_chosen'] != []:
             queue_list = get_queue_list()
-            self.main_window.window['queue_list'].update(values=queue_list)
+            self.window['queue_list'].update(values=queue_list)
             template_name = main_values['template_chosen'][0]
             with open("task_templates.json", "r") as f:
                 current_templates = json.load(f)
             template = current_templates[template_name]
             queue_list = get_queue_list()
             queue = get_queue_from_name(template['queue'], queue_list)
-            self.main_window.window['queue_list'].update(queue)
-            self.main_window.window['task_types'].update(f'{template["task_type"]}')
-            self.main_window.window['task_name'].update(f'{template["task_name"]}')
-            self.main_window.window['path'].update(f'{template["path"]}')
-            self.main_window.window['save_as_template'].update(False)
-            self.main_window.window['run_template_layout'].update(visible=False)
-            self.main_window.window['exec_layout'].update(visible=True)
+            self.window['queue_list'].update(queue)
+            self.window['task_types'].update(f'{template["task_type"]}')
+            self.window['task_name'].update(f'{template["task_name"]}')
+            self.window['path'].update(f'{template["path"]}')
+            self.window['save_as_template'].update(False)
+            self.window['run_template_layout'].update(visible=False)
+            self.window['exec_layout'].update(visible=True)
         else:
             self.create_error_window('no template selected')
 
@@ -210,21 +189,25 @@ class App():
             with open("task_templates.json", "w") as f:
                 json.dump(current_templates, f, indent=4)
             template_names = get_template_names(current_templates)
-            self.main_window.window['template_chosen'].update(values=template_names)
+            self.window['template_chosen'].update(values=template_names)
         else:
             self.create_error_window('no template selected')
 
     def run_template_back(self):
-        self.main_window.window['run_template_layout'].update(visible=False)
-        self.main_window.window['main_layout'].update(visible=True)
+        self.window['run_template_layout'].update(visible=False)
+        self.window['main_layout'].update(visible=True)
 
     def exec_back(self):
-        self.main_window.window['exec_layout'].update(visible=False)
-        self.main_window.window['run_template_layout'].update(visible=True)
-        self.main_window.window['queue_list'].update('')
-        self.main_window.window['task_types'].update('')
-        self.main_window.window['task_name'].update('')
-        self.main_window.window['path'].update('/')
+        with open("task_templates.json", "r") as f:
+            current_templates = json.load(f)
+        template_names = get_template_names(current_templates)
+        self.window['template_chosen'].update(values=template_names)
+        self.window['exec_layout'].update(visible=False)
+        self.window['run_template_layout'].update(visible=True)
+        self.window['queue_list'].update('')
+        self.window['task_types'].update('')
+        self.window['task_name'].update('')
+        self.window['path'].update('/')
 
     def exec_confirm(self, main_values):
         raw_queue_info = main_values['queue_list']
@@ -260,48 +243,33 @@ class App():
                     'queue':queue,
                     'tags':tags
                 }
-            if main_values['save_as_template']:  
-                new_template_layout = [
-                    [sg.Text('Please input a template name:')],
-                    [sg.InputText()],
-                    [sg.Button('Confirm')]
-                ]
-                new_template_window = ActiveWindow(sg.Window('Template Creation', new_template_layout, modal=True), active=True)
-                self.windows[new_template_window.name] = new_template_window
-                self.main_window.set_inactive()
+            if main_values['save_as_template']:
+                template_name = sg.popup_get_text('Please input a template name:', title='Template Creation')
+                with open("task_templates.json", "r") as f:
+                    current_templates = json.load(f)
+                current_templates[template_name] = self.run_config
+                with open("task_templates.json", "w") as f:
+                    json.dump(current_templates, f, indent=4)
+                template_names = get_template_names(current_templates)
+                self.window['template_chosen'].update(values=template_names)
+                task = exec_config(self.run_config, self.window)
+                self.url = task.get_output_log_web_page()
             else:
-                task = exec_config(self.run_config, self.main_window.window)
+                task = exec_config(self.run_config, self.window)
                 self.url = task.get_output_log_web_page()
 
     def exec_complete_back(self):
-        self.main_window.window['queue_list'].update('')
-        self.main_window.window['task_types'].update('')
-        self.main_window.window['task_name'].update('')
-        self.main_window.window['path'].update('/')
-        self.main_window.window['save_as_template'].update(False)
-        self.main_window.window['exec_complete_layout'].update(visible=False)
-        self.main_window.window['run_template_layout'].update(visible=True)
-
-'''
-ActiveWindow class:
-
-Similar to the PySimpleGUI Window class, but also stores the window activity 
-bool, which I use to make sure only one window is interacted with at a time
-'''
-class ActiveWindow():
-    def __init__(self, window, active):
-        self.name = window.Title
-        self.window = window
-        self.active = active
-
-    def __repr__(self):
-        return str(self.active)
-
-    def set_active(self):
-        self.active = True
-
-    def set_inactive(self):
-        self.active = False
+        with open("task_templates.json", "r") as f:
+            current_templates = json.load(f)
+        template_names = get_template_names(current_templates)
+        self.window['template_chosen'].update(values=template_names)
+        self.window['queue_list'].update('')
+        self.window['task_types'].update('')
+        self.window['task_name'].update('')
+        self.window['path'].update('/')
+        self.window['save_as_template'].update(False)
+        self.window['exec_complete_layout'].update(visible=False)
+        self.window['run_template_layout'].update(visible=True)
 
 ################################################################################
 ######                         Helper Functions                           ######
@@ -376,7 +344,7 @@ def get_template_names(current_templates):
     return template_names 
 
 # executes the configuration from the run config
-def exec_config(run_config, main_window):
+def exec_config(run_config, window):
     project_name = run_config['project_name']
     task_name = run_config['task_name']
     task_type = run_config['task_type']
@@ -401,8 +369,8 @@ def exec_config(run_config, main_window):
     Task.enqueue(create_populate.task, queue_name=queue)
     if tags != ['']:
         create_populate.task.set_tags(tags)
-    main_window['exec_complete_text1'].update(f"New task created id={task_id}")
-    main_window['exec_complete_text2'].update(f"Task id={task_id} sent for execution on queue {queue}")
-    main_window['exec_layout'].update(visible=False)
-    main_window['exec_complete_layout'].update(visible=True)
+    window['exec_complete_text1'].update(f"New task created id={task_id}")
+    window['exec_complete_text2'].update(f"Task id={task_id} sent for execution on queue {queue}")
+    window['exec_layout'].update(visible=False)
+    window['exec_complete_layout'].update(visible=True)
     return create_populate.task

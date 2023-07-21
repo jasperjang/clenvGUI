@@ -43,6 +43,7 @@ layout = [
     [sg.Text('')],
     [sg.Image('./logo.png')],
     [sg.Text('')],
+    # [sg.Menu('Menu')],
     [sg.Column(main_layout, key='main_layout'),
      sg.Column(exec_layout, visible=False, key='exec_layout'), 
      sg.Column(exec_complete_layout, visible=False, key='exec_complete_layout'),
@@ -56,29 +57,29 @@ layout = [
      sg.Column(run_template_layout, visible=False, key='run_template_layout')]
 ]
 
-main_window = ActiveWindow(sg.Window('CLENV', layout, modal=True, size=(700, 700), element_justification='c'), active=True)
+window = sg.Window('CLENV', layout, modal=True, size=(700, 700), element_justification='c')
 
-# init the app, which takes windows, config_manager, URL, and run_config params
-app = App({main_window.name:main_window}, ConfigManager('~/.clenv-config-index.json'), '', {})
+# init the app, which takes window, config_manager, URL, and run_config params
+app = App(window, ConfigManager('~/.clenv-config-index.json'), '', {})
 
 ################################################################################
-######                        Window Controllers                          ######
+######                             Main Loop                              ######
 ################################################################################
 
-def main(main_event, main_values):
-    if main_event == sg.WIN_CLOSED: # if user closes window or clicks cancel
-        return False
-    
+while True:
+    event, values = app.window.read()
+    if event == sg.WIN_CLOSED: # if user closes window or clicks cancel
+        break
     # main menu controllers
-    if main_event == 'task_exec':
+    if event == 'task_exec':
         app.task_exec()
-    if main_event == 'config':
+    if event == 'config':
         app.config()
     
     # config controllers
-    if main_event == 'config_confirm':
-        app.config_confirm(main_values)
-    if main_event == 'config_back':
+    if event == 'config_confirm':
+        app.config_confirm(values)
+    if event == 'config_back':
         app.config_back()
     for option_back in ['config_checkout_back',
                         'config_create_back', 
@@ -86,99 +87,37 @@ def main(main_event, main_values):
                         'config_list_back', 
                         'config_rename_back', 
                         'config_configure_back']:
-        if main_event == option_back:
+        if event == option_back:
             app.option_back(option_back)
-    if main_event == 'config_checkout_confirm':
-        app.config_checkout_confirm(main_values)
-    if main_event == 'config_create_confirm':
-        app.config_create_confirm(main_values)
-    if main_event == 'config_delete_confirm':
-        app.config_delete_confirm(main_values)
-    if main_event == 'config_rename_confirm':
-        app.config_rename_confirm(main_values)
-    if main_event == 'config_configure_confirm':
-        app.config_configure_confirm(main_values)
+    if event == 'config_checkout_confirm':
+        app.config_checkout_confirm(values)
+    if event == 'config_create_confirm':
+        app.config_create_confirm(values)
+    if event == 'config_delete_confirm':
+        app.config_delete_confirm(values)
+    if event == 'config_rename_confirm':
+        app.config_rename_confirm(values)
+    if event == 'config_configure_confirm':
+        app.config_configure_confirm(values)
         
     # run template controllers
-    if main_event == 'run_template_new':
+    if event == 'run_template_new':
         app.run_template_new()
-    if main_event == 'run_template_template':
-        app.run_template_template(main_values)
-    if main_event == 'run_template_delete':
-        app.run_template_delete(main_values)
-    if main_event == 'run_template_back':
+    if event == 'run_template_template':
+        app.run_template_template(values)
+    if event == 'run_template_delete':
+        app.run_template_delete(values)
+    if event == 'run_template_back':
         app.run_template_back()
 
     # exec controllers
-    if main_event == 'exec_back':
+    if event == 'exec_back':
         app.exec_back()
-    if main_event == 'exec_confirm':
-        app.exec_confirm(main_values)
-    if main_event == 'exec_complete_URL':
+    if event == 'exec_confirm':
+        app.exec_confirm(values)
+    if event == 'exec_complete_URL':
         wb.open(app.url)
-    if main_event == 'exec_complete_back':
+    if event == 'exec_complete_back':
         app.exec_complete_back()
-    return True
 
-def new_config(new_config_event, new_config_values):
-    if new_config_event == 'Confirm' or new_config_event == sg.WIN_CLOSED:
-        if new_config_event == 'Confirm':
-            app.config_manager.initialize_profile(f'{new_config_values[0]}')
-            app.main_window.window['main_layout'].update(visible=False)
-            app.main_window.window['config_layout'].update(visible=True)
-        app.windows['Profile Configuration'].window.close()
-        app.windows.pop('Profile Configuration')
-        app.main_window.set_active()
-
-def new_template(new_template_event, new_template_values):
-    if new_template_event == 'Confirm' or new_template_event == sg.WIN_CLOSED:
-        if new_template_event == 'Confirm':
-            template_name = new_template_values[0]
-            with open("task_templates.json", "r") as f:
-                current_templates = json.load(f)
-            current_templates[template_name] = app.run_config
-            with open("task_templates.json", "w") as f:
-                json.dump(current_templates, f, indent=4)
-            template_names = get_template_names(current_templates)
-            app.main_window.window['template_chosen'].update(values=template_names)
-            task = exec_config(app.run_config, app.main_window.window)
-            app.url = task.get_output_log_web_page()
-        app.windows['Template Creation'].window.close()
-        app.windows.pop('Template Creation')
-        app.main_window.set_active()
-
-def error(error_event, error_values):
-    if error_event == 'Back' or error_event == sg.WIN_CLOSED:
-        app.windows['Error'].window.close()
-        app.windows.pop('Error')
-        app.main_window.set_active()
-
-def action_successful(action_successful_event, action_successful_values):
-    if action_successful_event == sg.WIN_CLOSED:
-        app.windows['Action Successful'].window.close()
-        app.windows.pop('Action Successful')
-        app.main_window.set_active()
-
-################################################################################
-######                             Main Loop                              ######
-################################################################################
-
-while True:
-    window = app.get_active_window()
-    event, values = window.window.read()
-    if window.name == 'CLENV':
-        # only way to exit the main loop is by closing the main window
-        if not main(event, values):
-            break
-    elif window.name == 'Profile Configuration':
-        new_config(event, values)
-    elif window.name == 'Template Creation':
-        new_template(event, values)
-    elif window.name == 'Error':
-        error(event, values)
-    elif window.name == 'Action Successful':
-        action_successful(event, values)
-
-# closes all windows
-for name in app.windows:
-    app.windows[name].window.close()
+app.window.close()
