@@ -25,7 +25,7 @@ py -m pip install -r requirements.txt
 code .\clenv_env\Lib\site-packages\orderedmultidict\__init__.py
 ```
 
-4. Replace the contents of __init__.py with the following code
+4. Replace the contents of __init__.py with the following code and save
 
 ```
 # -*- coding: utf-8 -*-
@@ -58,7 +58,7 @@ globals().update(dict(
 py setup.py build
 ```
 
-6. The executable should be found under build\exe.win-amd64-3.10\ as 
+6. The executable should be found in the directory within the build directory as
     clenv_gui.exe
 
 ## In Linux
@@ -87,7 +87,7 @@ pip install -r requirements.txt
 code ./clenv_env/lib/python3.10/site-packages/orderedmultidict/__init__.py
 ```
 
-4. Replace the contents of __init__.py with the following code
+4. Replace the contents of __init__.py with the following code and save
 
 ```
 # -*- coding: utf-8 -*-
@@ -120,9 +120,5 @@ globals().update(dict(
 python3 setup.py build
 ```
 
-6. The executable should be found under build/exe.win-amd64-3.10/ as 
+6. The executable should be found in the directory within the build directory as
     clenv_gui
-
-```
-./build/exe.win-amd64-3.10/clenv_gui
-```
