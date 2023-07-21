@@ -15,19 +15,16 @@ task_types = [
 ]
 
 main_layout = [
-    [sg.Button('    Task Execution    ', font='Ariel 18', key='task_exec')],
-    [sg.Button('Profile Configuration', font='Ariel 18', key='config')]
-]
-
-run_template_layout = [
     [sg.Text('Select a template or run new:')],
-    [sg.Listbox(['No templates created'], key='template_chosen', size=(60,9))],
+    [sg.Listbox(['No templates created'], key='template_chosen', size=(70,9))],
     [
-        sg.Button('Run New', key='run_template_new'),
-        sg.Button('Run Template', key='run_template_template'),
-        sg.Button('Delete Template', key='run_template_delete'),
-        sg.Button('Back', key='run_template_back')
-    ]
+        sg.Button(' Run New ', key='run_template_new'),
+        sg.Button(' Run Template ', key='run_template_template'),
+        sg.Button(' Delete Template ', key='run_template_delete'),
+        sg.Button(' Profile Configuration ', key='config')
+    ],
+    [sg.VPush()],
+    [sg.Button('QUIT', key='quit')]
 ]
 
 exec_layout = [
