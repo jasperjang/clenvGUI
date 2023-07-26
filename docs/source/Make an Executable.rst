@@ -2,8 +2,10 @@ How to make an executable file
 =============================
 In Windows
 ----------
-1. CD into the clenvGUI directory::
+1. CD into the clenvGUI directory:
 
+.. code-block:: console
+    
     cd path\to\clenvGUI
 
 2. Create a virtual environment and activate it::
