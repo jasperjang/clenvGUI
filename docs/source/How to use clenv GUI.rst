@@ -6,4 +6,4 @@ Executing tasks
 The home screen of the GUI:
 
 .. image:: main.png
-    :scale: 50 %
+    :scale: 20 %
