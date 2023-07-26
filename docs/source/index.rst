@@ -10,6 +10,7 @@ Welcome to clenv GUI's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   Startup Guide
    How to use clenv GUI
    Make an Executable
 
