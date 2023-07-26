@@ -202,6 +202,7 @@ class App():
         self.window['task_types'].update('')
         self.window['task_name'].update('')
         self.window['path'].update('/')
+        self.window['tags'].update('')
 
     def exec_confirm(self, main_values):
         raw_queue_info = main_values['queue_list']
@@ -239,6 +240,11 @@ class App():
                 }
             if main_values['save_as_template']:
                 template_name = sg.popup_get_text('Please input a template name:', title='Template Creation')
+                if template_name == '':
+                    sg.popup('No template name given', title='Error')
+                    return
+                elif template_name == None:
+                    return
                 with open("task_templates.json", "r") as f:
                     current_templates = json.load(f)
                 current_templates[template_name] = self.run_config

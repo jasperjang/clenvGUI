@@ -5,5 +5,63 @@ Executing tasks
 
 The home screen of the GUI:
 
-.. image:: main.png
-    :scale: 20 %
+.. image:: images/main.png
+    :scale: 30 %
+
+When you first open the app, you won't have any saved templates, so to run a new 
+task click "Run New". You chould be brought to the following screen:
+
+.. image:: images/task_exec_blank.png
+    :scale: 30 %
+
+Use the dropdown menus to select the queue and task type, then type the task 
+name, *absolute* script path, and any tags you want to include. If you would 
+like to save this configuration, check the "Save as Template" box before 
+clicking confirm. 
+
+If you checked the box, you will prompted to enter a template name:
+
+.. image:: images/input_template.png
+    :scale: 30 %
+
+Once you confirm, you will be brough to the task executed screen:
+
+.. image:: images/task_execed.png
+    :scale: 30 %
+
+If you click the "Navigate to project on clearML" button, your default web 
+browser will open the task on clearML.
+
+If you chose to save the configuration as a template, it will be visible on the 
+home screen:
+
+.. image:: images/main_with_template.png
+    :scale: 30 %
+
+To run the template, click on the template, then click "Run Template".
+To delete the template, click on the template, thn click "Delete Template"
+
+Profile Configuration
+---------------------
+
+Clicking the "Profile Configuration" button on the home screen will bring you to 
+the profile configuration screen:
+
+.. image:: images/config.png
+    :scale: 30 %
+
+To configure something, click the dropdown menu, select an option, and confirm.
+
+.. image:: images/config_menu.png
+    :scale: 30 %
+
+Profiles are a way to easily switch between different clearML accounts.  For 
+example, I may have one profile that is connected to my BrainCo clearML account 
+and one profile that is connected to my personal clearML account. By default, 
+your starting profile will be connected to the account you used to setup clearML 
+on your device, but you can change the credentials of a profile by selecting the 
+"Configure API Path" option, which will bring you to the following screen:
+
+.. image:: images/profile_reconfig.png
+    :scale: 30 %
+
