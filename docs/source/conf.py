@@ -6,7 +6,7 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'clenv gui'
+project = 'clenv GUI'
 copyright = '2023, JasperJang'
 author = 'JasperJang'
 release = '1.0.0'
