@@ -4,7 +4,8 @@ In Windows
 ----------
 1. CD into the clenvGUI directory
 
-``cd path\to\clenvGUI``
+::
+    cd path\to\clenvGUI
 
 2. Create a virtual environment and activate it
 
