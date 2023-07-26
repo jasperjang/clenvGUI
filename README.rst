@@ -1,5 +1,7 @@
-# How I made an executable file
-## In Windows
+How I made an executable file
+=============================
+In Windows
+----------
 1. CD into the clenvGUI directory
 
 ```
@@ -61,7 +63,8 @@ py setup.py build
 6. The executable should be found in the directory within the build directory as
     clenv_gui.exe
 
-## In Linux
+In Linux
+--------
 1. CD into the clenvGUI directory
 
 ```
