@@ -51,7 +51,7 @@ the profile configuration screen.
 To configure something, click the dropdown menu, select an option, and confirm.
 
 .. image:: images/config_images.png
-    :scale: 30 %
+    :scale: 20 %
 
 Profiles are a way to easily switch between different clearML accounts.  For 
 example, I may have one profile that is connected to my BrainCo clearML account 
@@ -70,19 +70,19 @@ account you would like to use in clenvGUI. Click the icon in the top right and
 then "settings":
 
 .. image:: images/clearML1.png
-    :scale: 30 %
+    :scale: 20 %
 
 2. Click on the "workspace" option on the left:
 
 .. image:: images/clearML2.png
-    :scale: 30 %
+    :scale: 20 %
 
 3. Click on "Create new credentials":
 
 .. image:: images/clearML3.png
-    :scale: 30 %
+    :scale: 20 %
 
 4. Copy the multiline config in the popup and paste it into clenvGUI:
 
 .. image:: images/clearML4.png
-    :scale: 30 %
+    :scale: 20 %
