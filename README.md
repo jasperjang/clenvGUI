@@ -1,4 +1,4 @@
-# How I made a .exe file
+# How I made an executable file
 ## In Windows
 1. CD into the clenvGUI directory
 
