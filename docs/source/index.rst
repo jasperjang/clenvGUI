@@ -14,12 +14,5 @@ Welcome to clenv GUI's documentation!
    How to use clenv GUI
    Make an Executable
 
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+:ref:`search`
 
