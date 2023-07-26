@@ -2,15 +2,16 @@ How I made an executable file
 =============================
 In Windows
 ----------
-1. CD into the clenvGUI directory
+1. CD into the clenvGUI directory::
 
-::
     cd path\to\clenvGUI
 
 2. Create a virtual environment and activate it
 
-``py -m venv clenv_env``
-``.\clenv_env\Scripts\activate.ps1``
+::
+
+    py -m venv clenv_env
+    .\clenv_env\Scripts\activate.ps1
 
 2. Pip install requirements.txt
 
