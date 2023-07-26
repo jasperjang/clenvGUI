@@ -12,7 +12,6 @@ Refer to this `guide`_ for help setting up clearML.
 Running the Program
 -------------------
 Running the program is a simple as running the clenv_gui.py file, but if you 
-would like to create an executable file, you can follow the instructions under 
-`Make an Executable`_.
+would like to create an executable file, you can follow the `Build Instructions`_.
 
-.. _Make an Executable: https://jasperjang-clenvgui.readthedocs.io/en/latest/Make%20an%20Executable.html
+.. _Build Instructions: https://jasperjang-clenvgui.readthedocs.io/en/latest/Make%20an%20Executable.html

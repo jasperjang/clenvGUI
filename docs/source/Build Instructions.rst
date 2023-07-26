@@ -1,4 +1,4 @@
-How to make an executable file
+Build Instructions
 =============================
 In Windows
 ----------

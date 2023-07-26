@@ -12,7 +12,7 @@ Welcome to clenv GUI's documentation!
 
    Startup Guide
    How to use clenv GUI
-   Make an Executable
+   Build Instructions
 
 :ref:`search`
 
