@@ -13,11 +13,11 @@ In Windows
 
 2. Pip install requirements.txt::
 
-py -m pip install -r requirements.txt
+    py -m pip install -r requirements.txt
 
 3. Open the the following file in VScode::
 
-code .\clenv_env\Lib\site-packages\orderedmultidict\__init__.py
+    code .\clenv_env\Lib\site-packages\orderedmultidict\__init__.py
 
 4. Replace the contents of __init__.py with the following code and save::
 
@@ -45,8 +45,7 @@ code .\clenv_env\Lib\site-packages\orderedmultidict\__init__.py
 
     py setup.py build
 
-6. The executable should be found in the directory within the build directory as
-    clenv_gui.exe
+6. The executable should be found in the directory within the build directory as clenv_gui.exe
 
 In Linux
 --------
@@ -93,5 +92,4 @@ In Linux
 
     python3 setup.py build
 
-6. The executable should be found in the directory within the build directory as
-    clenv_gui
+6. The executable should be found in the directory within the build directory as clenv_gui
