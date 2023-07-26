@@ -7,7 +7,7 @@ Prerequisites
 
 Refer to this `guide`_ for help setting up clearML.
 
-.. _guide: https://github.com/BrainCoTech/rnd-mlops-guide/blob/master/clearml_registration_guide.md
+.. _guide: https://github.com/BrainCoTech/rnd-mlops-guide#4-braincos-mlops-platform-clearml
 
 Running the Program
 -------------------
