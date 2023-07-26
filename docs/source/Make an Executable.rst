@@ -2,9 +2,7 @@ How to make an executable file
 =============================
 In Windows
 ----------
-1. CD into the clenvGUI directory:
-
-.. code-block:: console
+1. CD into the clenvGUI directory::
     
     cd path\to\clenvGUI
 
