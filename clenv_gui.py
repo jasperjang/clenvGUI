@@ -33,7 +33,9 @@ from layouts import (
     config_delete_layout, 
     config_list_layout, 
     config_rename_layout, 
-    config_configure_layout
+    config_configure_layout,
+    model_opt_layout,
+    model_opt_complete_layout
 )
 
 # Main layout
@@ -51,7 +53,9 @@ layout = [
         sg.Column(config_delete_layout, visible=False, key='config_delete_layout'),
         sg.Column(config_list_layout, visible=False, key='config_list_layout'),
         sg.Column(config_rename_layout, visible=False, key='config_rename_layout'),
-        sg.Column(config_configure_layout, visible=False, key='config_configure_layout')
+        sg.Column(config_configure_layout, visible=False, key='config_configure_layout'),
+        sg.Column(model_opt_layout, visible=False, key='model_opt_layout'),
+        sg.Column(model_opt_complete_layout, visible=False, key='model_opt_complete_layout'),
     ]
 ]
 
@@ -59,7 +63,7 @@ window = sg.Window('CLENV', layout, modal=True, size=(700, 750),
                    element_justification='c', finalize=True)
 
 # init the app, which takes window, config_manager, URL, and run_config params
-app = App(window, ConfigManager('~/.clenv-config-index.json'), '', {})
+app = App(window, None, ConfigManager('~/.clenv-config-index.json'), '', {}, {})
 app.task_exec()
 
 ################################################################################
@@ -79,6 +83,18 @@ while True:
         app.run_template_delete(values)
     if event == 'config':
         app.config()
+    if event == 'param_opt_confirm':
+        app.param_opt_confirm(values)
+    if event == 'param_opt_cancel':
+        app.param_opt_cancel()
+
+    # model optimization controllers
+    if event == 'model_opt':
+        app.model_opt()
+    if event == 'model_opt_confirm':
+        app.model_opt_confirm(values)
+    if event == 'model_opt_back':
+        app.model_opt_back()
     
     # config controllers
     if event == 'config_confirm':

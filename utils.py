@@ -5,6 +5,7 @@ from clenv.cli.queue.queue_manager import QueueManager
 from git import Repo
 from os.path import isfile
 import os, json
+from optimizer import *
 
 ################################################################################
 ######                             Classes                                ######
@@ -23,8 +24,9 @@ Mostly contains functions that modify elements and valulues in the PySimpleGUI
 window
 '''
 class App():
-    def __init__(self, window, config_manager, URL, run_config):
+    def __init__(self, window, standby_window, config_manager, URL, run_config, opt_config):
         self.window = window
+        self.standby_window = standby_window
         self.config_manager = config_manager
         self.url = URL
         self.run_config = run_config
@@ -270,6 +272,102 @@ class App():
         self.window['save_as_template'].update(False)
         self.window['exec_complete_layout'].update(visible=False)
         self.window['main_layout'].update(visible=True)
+
+    def model_opt(self):
+        queue_list = get_queue_list()
+        self.window['opt_queue_list'].update(values=queue_list)
+        self.window['main_layout'].update(visible=False)
+        self.window['model_opt_layout'].update(visible=True)
+    
+    def model_opt_confirm(self, values):
+        raw_queue_info = values['opt_queue_list']
+        queue, num_idle_workers, total_workers = get_queue_info(raw_queue_info)
+        opt_name = values['opt_name']
+        opt_project = values['opt_project']
+        task_name_for_opt = values['task_name_for_opt']
+        project_name_for_opt = values['project_name_for_opt']
+        self.opt_config = {
+            'opt_name':opt_name,
+            'opt_project':opt_project,
+            'task_name_for_opt':task_name_for_opt,
+            'project_name_for_opt':project_name_for_opt,
+            'queue':queue
+            }
+        task = Task.get_task(project_name=project_name_for_opt, 
+                             task_name=task_name_for_opt)
+        opt_params = task.get_parameters_as_dict()
+        params_layout = [[sg.Text('Parameter:', font='Ariel 14 bold')]]
+        min_layout = [[sg.Text('Min:', font='Ariel 14 bold')]]
+        max_layout = [[sg.Text('Max:', font='Ariel 14 bold')]]
+        step_layout = [[sg.Text('Step:', font='Ariel 14 bold')]]
+        num_params = 0
+        for category in opt_params:
+            for param in opt_params[category]:
+                params_layout.append([sg.Text(f'{category}: {param}')])
+                min_layout.append([sg.InputText(size=(10,1), key=f'{param}_min')])
+                max_layout.append([sg.InputText(size=(10,1), key=f'{param}_max')])
+                step_layout.append([sg.InputText(size=(10,1), key=f'{param}_step')])
+                num_params += 1
+
+        param_opt_layout = [
+            [sg.Text('''
+Input a min value, max value, and step size for each parameter 
+or leave blank if you do not wish to optimize the parameter.''')],
+            [
+                sg.Column(params_layout),
+                sg.Push(), 
+                sg.Column(min_layout),
+                sg.Push(), 
+                sg.Column(max_layout),
+                sg.Push(), 
+                sg.Column(step_layout)
+            ],
+            [sg.Text()],
+            [
+                sg.Text('Objective Metric Title to Optimize:'),
+                sg.Push(), 
+                sg.InputText(key='objective_metric_title', size=(25,1))
+            ],
+            [sg.Text()],
+            [
+                sg.Text('Objective Metric Series to Optimize:'), 
+                sg.Push(),
+                sg.InputText(key='objective_metric_series', size=(25,1))
+            ],
+            [sg.Text()],
+            [
+                sg.Text('Maximize or minimize the metric?'), 
+                sg.Radio('Minimize', 'RADIO1', key='min_metric'),
+                sg.Radio('Maximize', 'RADIO1', key='max_metric')
+            ],
+            [sg.Text()],
+            [
+                sg.Button('Confirm', key='param_opt_confirm'),
+                sg.Button('Cancel', key='param_opt_cancel')
+            ]
+        ]
+        self.standby_window = self.window
+        self.window = sg.Window('Parameter Optimization', 
+                                layout=param_opt_layout, 
+                                modal=True)
+
+    def model_opt_back(self):
+        self.window['model_opt_layout'].update(visible=False)
+        self.window['main_layout'].update(visible=True)
+        self.window['opt_name'].update('')
+        self.window['task_name_for_opt'].update('')
+        self.window['project_name_for_opt'].update('')
+    
+    def param_opt_confirm(self, values):
+        self.window.close()
+        self.window = self.standby_window
+        self.window['model_opt_layout'].update(visible=False)
+        self.window['model_opt_complete_layout'].update(visible=True)
+        exec_opt_config(self.opt_config)
+
+    def param_opt_cancel(self):
+        self.window.close()
+        self.window = self.standby_window
 
 ################################################################################
 ######                         Helper Functions                           ######

@@ -21,10 +21,20 @@ main_layout = [
         sg.Button(' Run New ', key='run_template_new'),
         sg.Button(' Run Template ', key='run_template_template'),
         sg.Button(' Delete Template ', key='run_template_delete'),
-        sg.Button(' Profile Configuration ', key='config')
+        sg.Button(' Model Optimization ', key='model_opt')
     ],
-    [sg.VPush()],
-    [sg.Button('QUIT', key='quit')]
+    [sg.Text('')],
+    [sg.Text('')],
+    [sg.Text('')],
+    [sg.Text('')],
+    [sg.Text('')],
+    [sg.Text('')],
+    [sg.Text('')],
+    [
+        sg.Button('Profile Configuration', key='config'), 
+        sg.Push(), 
+        sg.Button('QUIT', key='quit')
+    ]
 ]
 
 exec_layout = [
@@ -127,9 +137,39 @@ This can be found by navigating to the clearML website,
 clicking the button in the top right corner, then 
 settings > workspace > create new credentials
              ''')],
-    [sg.Multiline('', key='multiline_config', size=(60,9))],
+    [sg.Multiline('', key='multiline_config', size=(5))],
     [
         sg.Button('Confirm', key='config_configure_confirm'),
         sg.Button('Back', key='config_configure_back')
     ]
+]
+
+model_opt_layout = [
+    [sg.Text('Please choose a queue to execute the task')],
+    [sg.OptionMenu([[]], key='opt_queue_list')],
+    [sg.Text()],
+    [sg.Text('Please enter a task name for the optimizer')],
+    [sg.InputText('Test', key='opt_name')],
+    [sg.Text('')],
+    [sg.Text('Please enter project name for the optimizer')],
+    [sg.InputText('Hyper-Parameter Optimization', key='opt_project')],
+    [sg.Text('')],
+    [sg.Text('Please enter the name of the task you want to optimize')],
+    [sg.InputText('Keras HP optimization base', key='task_name_for_opt')],
+    [sg.Text('')],
+    [sg.Text('Please enter the name of the project where the task is located')],
+    [sg.InputText('MNIST-test', key='project_name_for_opt')],
+    [sg.Text('')],
+    [
+        sg.Button('Confirm', key='model_opt_confirm'), 
+        sg.Button('Back', key='model_opt_back')
+    ]
+]
+
+model_opt_complete_layout = [
+    [sg.Text(f"New task created id='{'task_id'}'", key='model_opt_complete_text1')],
+    [sg.Text(f"Task id={'task_id'} sent for execution on queue {'queue'}", key='model_opt_complete_text2')],
+    [sg.Text("Execution log at:")],
+    [sg.Button('Navigate to project on clearML', key='model_opt_complete_URL')],
+    [sg.Button('Back', key='model_opt_complete_back')]
 ]

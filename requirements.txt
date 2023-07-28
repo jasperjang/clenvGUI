@@ -2,3 +2,4 @@ clenv >= 0.0.8
 clearml
 PySimpleGUI
 cx_freeze
+optuna
