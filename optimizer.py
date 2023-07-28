@@ -27,8 +27,9 @@ def exec_opt_config(opt_config):
                  task_name=opt_name,
                  task_type=Task.TaskTypes.optimizer,
                  reuse_last_task_id=False)
-
-    task.execute_remotely(queue_name=queue, clone=False, exit_process=True)
+    
+    Task.enqueue(task, queue_name=queue)
+    # task.execute_remotely(queue_name=queue, clone=False, exit_process=True)
 
     task_for_opt_id = Task.get_task(project_name=project_name_for_opt, 
                                  task_name=task_name_for_opt).id
