@@ -28,8 +28,7 @@ def exec_opt_config(opt_config):
                  task_type=Task.TaskTypes.optimizer,
                  reuse_last_task_id=False)
     
-    Task.enqueue(task, queue_name=queue)
-    # task.execute_remotely(queue_name=queue, clone=False, exit_process=True)
+    task.execute_remotely(queue_name=queue, clone=False, exit_process=True)
 
     task_for_opt_id = Task.get_task(project_name=project_name_for_opt, 
                                  task_name=task_name_for_opt).id
@@ -84,12 +83,3 @@ def exec_opt_config(opt_config):
     print([t.id for t in top_exp])
     # make sure background optimization stopped
     an_optimizer.stop()
-
-opt_config = {
-    'opt_name':'Test',
-    'opt_project':'Hyper-Parameter Optimization',
-    'task_name_for_opt':'Keras HP optimization base',
-    'project_name_for_opt':'MNIST-test',
-    'queue':'ml-universal-pip'
-}
-exec_opt_config(opt_config)
