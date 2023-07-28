@@ -155,10 +155,10 @@ model_opt_layout = [
     [sg.InputText('Hyper-Parameter Optimization', key='opt_project')],
     [sg.Text('')],
     [sg.Text('Please enter the name of the task you want to optimize')],
-    [sg.InputText('Keras HP optimization base', key='task_name_for_opt')],
+    [sg.InputText('training-yue-segan-100-500', key='task_name_for_opt')],
     [sg.Text('')],
     [sg.Text('Please enter the name of the project where the task is located')],
-    [sg.InputText('MNIST-test', key='project_name_for_opt')],
+    [sg.InputText('segan-demo', key='project_name_for_opt')],
     [sg.Text('')],
     [
         sg.Button('Confirm', key='model_opt_confirm'), 

@@ -1,5 +1,4 @@
 import PySimpleGUI as sg
-from clenv.cli.config.config_manager import ConfigManager
 import webbrowser as wb
 from utils import *
 
@@ -63,7 +62,7 @@ window = sg.Window('CLENV', layout, modal=True, size=(700, 750),
                    element_justification='c', finalize=True)
 
 # init the app, which takes window, config_manager, URL, and run_config params
-app = App(window, None, ConfigManager('~/.clenv-config-index.json'), '', {}, {})
+app = App(window)
 app.task_exec()
 
 ################################################################################
@@ -95,6 +94,8 @@ while True:
         app.model_opt_confirm(values)
     if event == 'model_opt_back':
         app.model_opt_back()
+    if event == 'model_opt_complete_URL':
+        wb.open(app.url)
     
     # config controllers
     if event == 'config_confirm':

@@ -1,11 +1,12 @@
 import PySimpleGUI as sg
 from clearml import Task
 from clearml.backend_interface.task.populate import CreateAndPopulate
+from clearml.automation import UniformIntegerParameterRange, UniformParameterRange
 from clenv.cli.queue.queue_manager import QueueManager
+from clenv.cli.config.config_manager import ConfigManager
 from git import Repo
 from os.path import isfile
 import os, json
-from optimizer import *
 
 ################################################################################
 ######                             Classes                                ######
@@ -24,12 +25,14 @@ Mostly contains functions that modify elements and valulues in the PySimpleGUI
 window
 '''
 class App():
-    def __init__(self, window, standby_window, config_manager, URL, run_config, opt_config):
+    def __init__(self, window):
         self.window = window
-        self.standby_window = standby_window
-        self.config_manager = config_manager
-        self.url = URL
-        self.run_config = run_config
+        self.standby_window = None
+        self.config_manager = ConfigManager('~/.clenv-config-index.json')
+        self.url = ''
+        self.run_config = {}
+        self.opt_config = {}
+        self.opt_params = []
             
     # creates an action success window
     def action_success(self):
@@ -295,21 +298,12 @@ class App():
             }
         task = Task.get_task(project_name=project_name_for_opt, 
                              task_name=task_name_for_opt)
-        opt_params = task.get_parameters_as_dict()
-        params_layout = [[sg.Text('Parameter:', font='Ariel 14 bold')]]
-        min_layout = [[sg.Text('Min:', font='Ariel 14 bold')]]
-        max_layout = [[sg.Text('Max:', font='Ariel 14 bold')]]
-        step_layout = [[sg.Text('Step:', font='Ariel 14 bold')]]
-        num_params = 0
-        for category in opt_params:
-            for param in opt_params[category]:
-                params_layout.append([sg.Text(f'{category}: {param}')])
-                min_layout.append([sg.InputText(size=(10,1), key=f'{param}_min')])
-                max_layout.append([sg.InputText(size=(10,1), key=f'{param}_max')])
-                step_layout.append([sg.InputText(size=(10,1), key=f'{param}_step')])
-                num_params += 1
+        raw_params = task.get_parameters_as_dict()
 
-        param_opt_layout = [
+        param_layouts = get_param_layouts(raw_params)
+        params_layout, min_layout, max_layout, step_layout = param_layouts
+
+        left_param_opt_layout = [
             [sg.Text('''
 Input a min value, max value, and step size for each parameter 
 or leave blank if you do not wish to optimize the parameter.''')],
@@ -321,26 +315,78 @@ or leave blank if you do not wish to optimize the parameter.''')],
                 sg.Column(max_layout),
                 sg.Push(), 
                 sg.Column(step_layout)
-            ],
+            ]
+        ]
+        right_param_opt_layout = [
             [sg.Text()],
             [
                 sg.Text('Objective Metric Title to Optimize:'),
                 sg.Push(), 
-                sg.InputText(key='objective_metric_title', size=(25,1))
+                sg.InputText('epoch_accuracy', key='objective_metric_title', size=(25,1))
             ],
-            [sg.Text()],
             [
                 sg.Text('Objective Metric Series to Optimize:'), 
                 sg.Push(),
-                sg.InputText(key='objective_metric_series', size=(25,1))
+                sg.InputText('epoch_accuracy', key='objective_metric_series', size=(25,1))
             ],
-            [sg.Text()],
             [
                 sg.Text('Maximize or minimize the metric?'), 
+                sg.Push(),
                 sg.Radio('Minimize', 'RADIO1', key='min_metric'),
                 sg.Radio('Maximize', 'RADIO1', key='max_metric')
             ],
-            [sg.Text()],
+            [
+                sg.Text('Max number of concurrent tasks:'),
+                sg.Push(), 
+                sg.InputText('2', size=(10,1), key='max_number_of_concurrent_tasks')
+            ],
+            [
+                sg.Text('Number of top tasks to save:'), 
+                sg.Push(),
+                sg.InputText('5', size=(10,1), key='save_top_k_tasks_only')
+            ],
+            [
+                sg.Text('Time limit per job in minutes:'),
+                sg.Push(), 
+                sg.InputText('10', size=(10,1), key='time_limit_per_job')
+            ],
+            [
+                sg.Text('Time interval to check on the experiments:'),
+                sg.Push(), 
+                sg.InputText('0.2', size=(10,1), key='pool_period_min')
+            ],
+            [
+                sg.Text('Maximum number of jobs to launch for the optimization:'), 
+                sg.Push(),
+                sg.InputText('10', size=(10,1), key='total_max_jobs')
+            ],
+            [
+                sg.Text('Minimum number of iterations for an experiment:'), 
+                sg.Push(),
+                sg.InputText('10', size=(10,1), key='min_iteration_per_job')
+            ],
+            [
+                sg.Text('Maximum number of iterations for an experiment:'),
+                sg.Push(), 
+                sg.InputText('30', size=(10,1), key='max_iteration_per_job')
+            ],
+            [
+                sg.Text('Total time limit for the optimization in minutes:'),
+                sg.Push(), 
+                sg.InputText('120', size=(10,1), key='total_time_limit')
+            ],
+        ]
+        param_opt_layout = [
+            [
+                sg.Push(), 
+                sg.Text('Hyperparameter Optimization', font='Ariel 24 bold'),
+                sg.Push()
+            ],
+            [
+                sg.Column(left_param_opt_layout), 
+                sg.Column(right_param_opt_layout)
+            ],
+            [sg.Text('')],
             [
                 sg.Button('Confirm', key='param_opt_confirm'),
                 sg.Button('Cancel', key='param_opt_cancel')
@@ -359,11 +405,156 @@ or leave blank if you do not wish to optimize the parameter.''')],
         self.window['project_name_for_opt'].update('')
     
     def param_opt_confirm(self, values):
-        self.window.close()
-        self.window = self.standby_window
-        self.window['model_opt_layout'].update(visible=False)
-        self.window['model_opt_complete_layout'].update(visible=True)
-        exec_opt_config(self.opt_config)
+
+        # param_ranges = {}
+        # for category in self.opt_params:
+        #     for param in self.opt_params[category]:
+        #         min = values[f'{param}_min'],
+        #         max = values[f'{param}_max'],
+        #         step = values[f'{param}_step']
+        #         param_ranges[f'{category}/{param}'] = {
+        #             'min':values[f'{param}_min'],
+        #             'max':values[f'{param}_max'],
+        #             'step':values[f'{param}_step']
+        #         }
+        # print(param_ranges)
+        # hyper_parameters = []
+        # for param_name in param_ranges:
+        #     params = param_ranges[param_name]
+        #     floats = False
+        #     for val in params:
+        #         if type(val) == float:
+        #             floats = True
+        #             break
+        #     if floats:
+        #         hyper_parameters.append(UniformParameterRange(
+        #             param_name, 
+        #             min_value=params['min'],
+        #             max_value=params['max'],
+        #             step_value=params['step']
+        #         ))
+        #     else:
+        #         hyper_parameters.append(UniformIntegerParameterRange(
+        #             param_name, 
+        #             min_value=params['min'],
+        #             max_value=params['max'],
+        #             step_value=params['step']
+        #         ))
+
+        self.opt_config['objective_metric_title'] = values['objective_metric_title']
+        self.opt_config['objective_metric_series'] = values['objective_metric_series']
+        self.opt_config['min_metric'] = values['min_metric']
+        self.opt_config['max_number_of_concurrent_tasks'] = values['max_number_of_concurrent_tasks']
+        self.opt_config['save_top_k_tasks_only'] = values['save_top_k_tasks_only']
+        self.opt_config['time_limit_per_job'] = values['time_limit_per_job']
+        self.opt_config['pool_period_min'] = values['pool_period_min']
+        self.opt_config['total_max_jobs'] = values['total_max_jobs']
+        self.opt_config['min_iteration_per_job'] = values['min_iteration_per_job']
+        self.opt_config['max_iteration_per_job'] = values['max_iteration_per_job']
+        self.opt_config['total_time_limit'] = values['total_time_limit']
+        self.opt_config['hyper_parameters'] = hyper_parameters
+
+        optimizer = open('optimizer.py', 'w')
+        optimizer.write('''
+from clearml import Task
+from clearml.automation.optuna import OptimizerOptuna
+from clearml.automation import HyperParameterOptimizer
+
+def job_complete_callback(
+        job_id,                 # type: str
+        objective_value,        # type: float
+        objective_iteration,    # type: int
+        job_parameters,         # type: dict
+        top_performance_job_id  # type: str
+        ):  
+        print('Job completed!', job_id, objective_value, objective_iteration, job_parameters)
+        if job_id == top_performance_job_id:
+            print('WOOT WOOT we broke the record! Objective reached {}'.format(objective_value))
+
+
+def exec_opt_config(opt_config):
+    opt_name = opt_config['opt_name']
+    opt_project = opt_config['opt_project']
+    task_name_for_opt = opt_config['task_name_for_opt']
+    project_name_for_opt = opt_config['project_name_for_opt']
+    queue = opt_config['queue']
+    objective_metric_title = opt_config['objective_metric_title']
+    objective_metric_series = opt_config['objective_metric_series']
+    min_metric = opt_config['min_metric']
+    max_number_of_concurrent_tasks = opt_config['max_number_of_concurrent_tasks']
+    save_top_k_tasks_only = opt_config['save_top_k_tasks_only']
+    time_limit_per_job = opt_config['time_limit_per_job']
+    pool_period_min = opt_config['pool_period_min']
+    total_max_jobs = opt_config['total_max_jobs']
+    min_iteration_per_job = opt_config['min_iteration_per_job']
+    max_iteration_per_job = opt_config['max_iteration_per_job']
+    total_time_limit = opt_config['total_time_limit']
+    hyper_parameters = opt_config['hyper_parameters']
+
+    objective_metric_sign = ''
+    if min_metric == True:
+        objective_metric_sign = 'min'
+    else:
+        objective_metric_sign = 'max'
+
+    task = Task.init(project_name=opt_project,
+                 task_name=opt_name,
+                 task_type=Task.TaskTypes.optimizer,
+                 reuse_last_task_id=False)
+    
+    task.execute_remotely(queue_name=queue, clone=False, exit_process=True)
+
+    task_for_opt_id = Task.get_task(project_name=project_name_for_opt, 
+                                 task_name=task_name_for_opt).id
+
+    an_optimizer = HyperParameterOptimizer(
+        base_task_id=task_for_opt_id,
+        hyper_parameters=hyper_parameters,
+        objective_metric_title=objective_metric_title,
+        objective_metric_series=objective_metric_series,
+        objective_metric_sign=objective_metric_sign,
+        max_number_of_concurrent_tasks=max_number_of_concurrent_tasks,
+        optimizer_class=OptimizerOptuna,
+        execution_queue=queue,
+        save_top_k_tasks_only=save_top_k_tasks_only,
+        time_limit_per_job=time_limit_per_job,
+        pool_period_min=pool_period_min,
+        total_max_jobs=total_max_jobs,
+        min_iteration_per_job=min_iteration_per_job,
+        max_iteration_per_job=max_iteration_per_job
+    )
+
+    an_optimizer.set_report_period(pool_period_min)
+    an_optimizer.start(job_complete_callback=job_complete_callback)
+    an_optimizer.set_time_limit(in_minutes=total_time_limit)
+    an_optimizer.wait()
+    top_exp = an_optimizer.get_top_experiments(top_k=save_top_k_tasks_only)
+    print([t.id for t in top_exp])
+    an_optimizer.stop()
+    
+''')
+        optimizer.write(f'exec_opt_config({self.opt_config})')
+        optimizer.close()
+        # opt_name = self.opt_config['opt_name']
+        # opt_project = self.opt_config['opt_project']
+        # queue = self.opt_config['queue']
+        # create_populate = CreateAndPopulate(
+        #     project_name=opt_project,
+        #     task_name=opt_name,
+        #     task_type=Task.TaskTypes.optimizer,
+        #     script='optimizer.py',
+        # )
+        # create_populate.create_task()
+        # create_populate.task._set_runtime_properties({"_CLEARML_TASK": True})
+        # task_id = create_populate.get_id()
+        # Task.enqueue(create_populate.task, queue_name=queue)
+        # self.url = create_populate.task.get_output_log_web_page()
+        # self.window['model_opt_complete_text1'].update(f"New task created id={task_id}")
+        # self.window['model_opt_complete_text2'].update(f"Task id={task_id} sent for execution on queue {queue}")
+        # self.window.close()
+        # self.window = self.standby_window
+        # self.window['model_opt_layout'].update(visible=False)
+        # self.window['model_opt_complete_layout'].update(visible=True)
 
     def param_opt_cancel(self):
         self.window.close()
@@ -372,6 +563,67 @@ or leave blank if you do not wish to optimize the parameter.''')],
 ################################################################################
 ######                         Helper Functions                           ######
 ################################################################################
+
+def get_param_layouts(raw_params):
+    params_layout = [[sg.Text('Parameter:', font='Ariel 14 bold')]]
+    min_layout = [[sg.Text('Min:', font='Ariel 14 bold')]]
+    max_layout = [[sg.Text('Max:', font='Ariel 14 bold')]]
+    step_layout = [[sg.Text('Step:', font='Ariel 14 bold')]]
+    for category in raw_params:
+        params = raw_params[category]
+        for param in params:
+            value = params[param]
+            if type(value) == str:
+                if value.isdigit():
+                    params_layout.append(
+                        [sg.Text(f'{category}: {param}'), 
+                         sg.Push(), 
+                         sg.Text('(int)')])
+                    min_layout.append(
+                        [sg.InputText(size=(10,1), key=f'{param}_min')])
+                    max_layout.append(
+                        [sg.InputText(size=(10,1), key=f'{param}_max')])
+                    step_layout.append(
+                        [sg.InputText(size=(10,1), key=f'{param}_step')])
+                elif value.replace('.', "").isdigit():
+                    params_layout.append(
+                        [sg.Text(f'{category}: {param}'), 
+                         sg.Push(), 
+                         sg.Text('(float)')])
+                    min_layout.append(
+                        [sg.InputText(size=(10,1), key=f'{param}_min')])
+                    max_layout.append(
+                        [sg.InputText(size=(10,1), key=f'{param}_max')])
+                    step_layout.append(
+                        [sg.InputText(size=(10,1), key=f'{param}_step')])
+            else:
+                nested_params = params[param]
+                for nested_param in nested_params:
+                    value = nested_params[nested_param]
+                    if type(value) == str:
+                        if value.isdigit():
+                            params_layout.append(
+                                [sg.Text(f'{category}: {param}: {nested_param}'), 
+                                 sg.Push(), 
+                                 sg.Text('(int)')])
+                            min_layout.append(
+                                [sg.InputText(size=(10,1), key=f'{param}_min')])
+                            max_layout.append(
+                                [sg.InputText(size=(10,1), key=f'{param}_max')])
+                            step_layout.append(
+                                [sg.InputText(size=(10,1), key=f'{param}_step')])
+                        elif value.replace('.', "").isdigit():
+                            params_layout.append(
+                                [sg.Text(f'{category}: {param}: {nested_param}'), 
+                                 sg.Push(), 
+                                 sg.Text('(float)')])
+                            min_layout.append(
+                                [sg.InputText(size=(10,1), key=f'{param}_min')])
+                            max_layout.append(
+                                [sg.InputText(size=(10,1), key=f'{param}_max')])
+                            step_layout.append(
+                                [sg.InputText(size=(10,1), key=f'{param}_step')])
+    return params_layout, min_layout, max_layout, step_layout
 
 # returns readable list of available queues
 def get_queue_list():
@@ -459,7 +711,6 @@ def exec_config(run_config, window):
         repo=remote_url,
         branch=current_branch,
         script=script,
-        verbose=True,
     )
     create_populate.create_task()
     create_populate.task._set_runtime_properties({"_CLEARML_TASK": True})
