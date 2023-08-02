@@ -61,7 +61,7 @@ exec_layout = [
 
 exec_complete_layout = [
     [sg.Text(f"New task created id='{'task_id'}'", key='exec_complete_text1')],
-    [sg.Text(f"Task id={'task_id'} sent for execution on queue {'queue'}", key='exec_complete_text2')],
+    [sg.Text(f"Execution on queue {'queue'}", key='exec_complete_text2')],
     [sg.Text("Execution log at:")],
     [sg.Button('Navigate to project on clearML', key='exec_complete_URL')],
     [sg.Button('Back', key='exec_complete_back')]
@@ -168,7 +168,7 @@ model_opt_layout = [
 
 model_opt_complete_layout = [
     [sg.Text(f"New task created id='{'task_id'}'", key='model_opt_complete_text1')],
-    [sg.Text(f"Task id={'task_id'} sent for execution on queue {'queue'}", key='model_opt_complete_text2')],
+    [sg.Text(f"Execution on queue {'queue'}", key='model_opt_complete_text2')],
     [sg.Text("Execution log at:")],
     [sg.Button('Navigate to project on clearML', key='model_opt_complete_URL')],
     [sg.Button('Back', key='model_opt_complete_back')]
