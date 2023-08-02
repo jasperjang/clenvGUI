@@ -96,6 +96,8 @@ while True:
         app.model_opt_back()
     if event == 'model_opt_complete_URL':
         wb.open(app.url)
+    if event == 'model_opt_complete_back':
+        app.model_opt_complete_back()
     
     # config controllers
     if event == 'config_confirm':
