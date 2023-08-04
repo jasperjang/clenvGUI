@@ -15,17 +15,20 @@ task_types = [
 ]
 
 main_layout = [
-    [sg.Text('Select a template or run new:')],
+    [
+        sg.Push(),
+        sg.Button('   Remote Execution   ', font='Ariel 18 bold', key='run_template_new'),
+        sg.Push(),
+        sg.Button('  Model Optimization  ', font='Ariel 18 bold', key='model_opt'),
+        sg.Push()
+    ],
+    [sg.Text()],
+    [sg.Text('Select a template to run or delete:')],
     [sg.Listbox(['No templates created'], key='template_chosen', size=(70,9))],
     [
-        sg.Button(' Run New ', key='run_template_new'),
-        sg.Button(' Run Template ', key='run_template_template'),
-        sg.Button(' Delete Template ', key='run_template_delete'),
-        sg.Button(' Model Optimization ', key='model_opt')
+        sg.Button('Run Template', key='run_template_template'),
+        sg.Button('Delete Template', key='run_template_delete'),
     ],
-    [sg.Text('')],
-    [sg.Text('')],
-    [sg.Text('')],
     [sg.Text('')],
     [sg.Text('')],
     [sg.Text('')],
@@ -145,20 +148,20 @@ settings > workspace > create new credentials
 ]
 
 model_opt_layout = [
-    [sg.Text('Please choose a queue to execute the task')],
-    [sg.OptionMenu([[]], key='opt_queue_list')],
+    [sg.Text('Please choose a queue to host the optimization task')],
+    [sg.OptionMenu([[]], key='opt_queue')],
     [sg.Text()],
     [sg.Text('Please enter a task name for the optimizer')],
-    [sg.InputText('Test', key='opt_name')],
+    [sg.InputText('', key='opt_name')],
     [sg.Text('')],
     [sg.Text('Please enter project name for the optimizer')],
-    [sg.InputText('Hyper-Parameter Optimization', key='opt_project')],
+    [sg.InputText('', key='opt_project')],
     [sg.Text('')],
     [sg.Text('Please enter the name of the task you want to optimize')],
-    [sg.InputText('training-yue-segan-100-500', key='task_name_for_opt')],
+    [sg.InputText('', key='task_name_for_opt')],
     [sg.Text('')],
     [sg.Text('Please enter the name of the project where the task is located')],
-    [sg.InputText('segan-demo', key='project_name_for_opt')],
+    [sg.InputText('', key='project_name_for_opt')],
     [sg.Text('')],
     [
         sg.Button('Confirm', key='model_opt_confirm'), 

@@ -1,10 +1,10 @@
-
 from clearml import Task
 from clearml.automation.optuna import OptimizerOptuna
 from clearml.automation import (
     HyperParameterOptimizer, 
     UniformIntegerParameterRange, 
-    UniformParameterRange
+    UniformParameterRange,
+    DiscreteParameterRange
 )
 
 def job_complete_callback(
@@ -16,7 +16,7 @@ def job_complete_callback(
         ):  
         print('Job completed!', job_id, objective_value, objective_iteration, job_parameters)
         if job_id == top_performance_job_id:
-            print('WOOT WOOT we broke the record! Objective reached {}'.format(objective_value))
+            print('We broke the record! Objective reached {}'.format(objective_value))
 
 
 def exec_opt_config(opt_config):
@@ -24,7 +24,7 @@ def exec_opt_config(opt_config):
     opt_project = opt_config['opt_project']
     task_name_for_opt = opt_config['task_name_for_opt']
     project_name_for_opt = opt_config['project_name_for_opt']
-    queue = opt_config['queue']
+    opt_child_queue = opt_config['opt_child_queue']
     metric_to_optimize = opt_config['metric_to_optimize']
     min_metric = opt_config['min_metric']
     max_number_of_concurrent_tasks = opt_config['max_number_of_concurrent_tasks']
@@ -38,24 +38,27 @@ def exec_opt_config(opt_config):
     param_ranges = opt_config['param_ranges']
 
     hyper_parameters = []
-    for param in param_ranges:
-        params = param_ranges[param]
-        if isinstance(params['min'], float):
-            hyper_parameters.append(UniformParameterRange(
-                param, 
-                min_value=params['min'],
-                max_value=params['max'],
-                step_size=params['step'],
-                include_max_value = True
-            ))
+    for param_name in param_ranges:
+        params = param_ranges[param_name]
+        if isinstance(params, dict):
+            if isinstance(params['min'], float):
+                hyper_parameters.append(UniformParameterRange(
+                    param_name, 
+                    min_value=params['min'],
+                    max_value=params['max'],
+                    step_size=params['step'],
+                    include_max_value = True
+                ))
+            elif isinstance(params['min'], int):
+                hyper_parameters.append(UniformIntegerParameterRange(
+                    param_name, 
+                    min_value=params['min'],
+                    max_value=params['max'],
+                    step_size=params['step'],
+                    include_max_value = True
+                ))
         else:
-            hyper_parameters.append(UniformIntegerParameterRange(
-                param, 
-                min_value=params['min'],
-                max_value=params['max'],
-                step_size=params['step'],
-                include_max_value = True
-            ))
+            hyper_parameters.append(DiscreteParameterRange(param_name, params))
 
     objective_metric_sign = ''
     if min_metric == True:
@@ -67,8 +70,6 @@ def exec_opt_config(opt_config):
                  task_name=opt_name,
                  task_type=Task.TaskTypes.optimizer,
                  reuse_last_task_id=False)
-    
-    task.execute_remotely(queue_name=queue, clone=False, exit_process=True)
 
     task_for_opt_id = Task.get_task(project_name=project_name_for_opt, 
                                  task_name=task_name_for_opt).id
@@ -81,7 +82,7 @@ def exec_opt_config(opt_config):
         objective_metric_sign=objective_metric_sign,
         max_number_of_concurrent_tasks=max_number_of_concurrent_tasks,
         optimizer_class=OptimizerOptuna,
-        execution_queue=queue,
+        execution_queue=opt_child_queue,
         save_top_k_tasks_only=save_top_k_tasks_only,
         time_limit_per_job=time_limit_per_job,
         pool_period_min=pool_period_min,
@@ -97,4 +98,4 @@ def exec_opt_config(opt_config):
     top_exp = an_optimizer.get_top_experiments(top_k=5)
     print([t.id for t in top_exp])
     an_optimizer.stop()
-    
+

@@ -1,6 +1,7 @@
 import PySimpleGUI as sg
 import webbrowser as wb
 from utils import *
+from app import App
 
 ################################################################################
 ######                          Initialization                            ######
@@ -72,28 +73,41 @@ app.task_exec()
 while True:
     event, values = app.window.read()
     if event == 'quit' or event == sg.WIN_CLOSED: # if user closes window or clicks cancel
-        break
+        if app.window.Title == 'CLENV':
+            break
+        else:
+            app.param_opt_cancel()
     # main menu controllers
     if event == 'run_template_new':
         app.run_template_new()
+    if event == 'model_opt':
+        app.model_opt()
     if event == 'run_template_template':
         app.run_template_template(values)
     if event == 'run_template_delete':
         app.run_template_delete(values)
     if event == 'config':
         app.config()
-    if event == 'param_opt_confirm':
-        app.param_opt_confirm(values)
-    if event == 'param_opt_cancel':
-        app.param_opt_cancel()
+
+    # exec controllers
+    if event == 'exec_back':
+        app.exec_back()
+    if event == 'exec_confirm':
+        app.exec_confirm(values)
+    if event == 'exec_complete_URL':
+        wb.open(app.url)
+    if event == 'exec_complete_back':
+        app.exec_complete_back()
 
     # model optimization controllers
-    if event == 'model_opt':
-        app.model_opt()
     if event == 'model_opt_confirm':
         app.model_opt_confirm(values)
     if event == 'model_opt_back':
         app.model_opt_back()
+    if event == 'param_opt_confirm':
+        app.param_opt_confirm(values)
+    if event == 'param_opt_cancel':
+        app.param_opt_cancel()
     if event == 'model_opt_complete_URL':
         wb.open(app.url)
     if event == 'model_opt_complete_back':
@@ -122,15 +136,5 @@ while True:
         app.config_rename_confirm(values)
     if event == 'config_configure_confirm':
         app.config_configure_confirm(values)
-
-    # exec controllers
-    if event == 'exec_back':
-        app.exec_back()
-    if event == 'exec_confirm':
-        app.exec_confirm(values)
-    if event == 'exec_complete_URL':
-        wb.open(app.url)
-    if event == 'exec_complete_back':
-        app.exec_complete_back()
 
 app.window.close()
