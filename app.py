@@ -2,8 +2,9 @@ import PySimpleGUI as sg
 from clearml import Task
 from clenv.cli.config.config_manager import ConfigManager
 from git import Repo
-import os
+import os, json
 from utils import *
+import hashlib
 
 '''
 App class:
@@ -409,14 +410,13 @@ class App():
             else:
                 self.opt_config[param] = None
         
-        # for key in self.opt_config:
-        #     value = self.opt_config[key]
-        #     print(f'{key}:{value}\n')
-
         with open('optimizer.py', 'r') as optimizer:
             lines = optimizer.readlines()
         lines.append(f'exec_opt_config({self.opt_config})')
-        with open('optimizer.py', 'w') as optimizer:
+        lines_bytes = json.dumps(lines).encode()
+        md5 = hashlib.md5(lines_bytes).hexdigest()
+        print(md5)
+        with open(f'optimizer_{md5}.py', 'w') as optimizer:
             optimizer.writelines(lines)
             optimizer.close()
         
@@ -434,7 +434,7 @@ class App():
             template_names = get_template_names(current_templates)
             self.standby_window['template_chosen'].update(values=template_names)
         
-        task, task_id, opt_queue = exec_opt_config(self.opt_config)
+        task, task_id, opt_queue = exec_opt_config(self.opt_config, md5)
         self.url = task.get_output_log_web_page()
         self.standby_window['model_opt_complete_text1'].update(
             f"New task created id={task_id}")
@@ -446,12 +446,7 @@ class App():
         self.window.close()
         self.window = self.standby_window
 
-        with open('optimizer.py', 'r') as optimizer:
-            lines = optimizer.readlines()
-        lines.pop()
-        with open('optimizer.py', 'w') as optimizer:
-            optimizer.writelines(lines)
-            optimizer.close()
+        os.remove(f'optimizer_{md5}.py')
 
     def param_opt_cancel(self):
         self.window.close()

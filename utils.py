@@ -70,7 +70,6 @@ def get_queue_list():
 # returns queue name, number of idle workers, and total number of workers from 
 #   the queue_list format above
 def get_queue_info(queue_list_item):
-    print(queue_list_item)
     L = queue_list_item.split('   -   # idle workers: ')
     queue = L[0]
     num_idle_workers = L[1]
@@ -202,7 +201,7 @@ def exec_config(run_config, window):
     return create_populate.task
 
 # executes the configuration from the opt config
-def exec_opt_config(opt_config):
+def exec_opt_config(opt_config, md5):
     opt_name = opt_config['opt_name']
     opt_project = opt_config['opt_project']
     opt_queue = opt_config['opt_queue']
@@ -210,7 +209,7 @@ def exec_opt_config(opt_config):
         project_name=opt_project,
         task_name=opt_name,
         task_type=Task.TaskTypes.optimizer,
-        script='optimizer.py',
+        script=f'optimizer_{md5}.py',
     )
     create_populate.create_task()
     create_populate.task._set_runtime_properties({"_CLEARML_TASK": True})
