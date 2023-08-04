@@ -2,8 +2,7 @@ import PySimpleGUI as sg
 from clearml import Task
 from clenv.cli.config.config_manager import ConfigManager
 from git import Repo
-from os.path import isfile
-import os, json
+import os
 from utils import *
 
 '''
@@ -42,13 +41,7 @@ class App():
 
     # initializes the home screen
     def task_exec(self):
-        if not isfile('./task_templates.json'):
-            with open('task_templates.json', 'w') as f:
-                json.dump({"Remote Execution":{},
-                           "Model Optimization":{}}, 
-                           f, indent=4)
-        with open("task_templates.json", "r") as f:
-            current_templates = json.load(f)
+        current_templates =read_templates()
         template_names = get_template_names(current_templates)
         self.window['template_chosen'].update(values=template_names)
 
@@ -71,8 +64,7 @@ class App():
             main_values['template_chosen'] != []):
 
             template = main_values['template_chosen'][0]
-            with open("task_templates.json", "r") as f:
-                current_templates = json.load(f)
+            current_templates =read_templates()
             category = template.split(': ')[0]
             template_name = template.split(': ')[-1]
 
@@ -184,13 +176,11 @@ class App():
             main_values['template_chosen'] != []):
 
             template = main_values['template_chosen'][0]
-            with open("task_templates.json", "r") as f:
-                current_templates = json.load(f)
+            current_templates =read_templates()
             category = template.split(': ')[0]
             template_name = template.split(': ')[-1]
             current_templates[category].pop(template_name)
-            with open("task_templates.json", "w") as f:
-                json.dump(current_templates, f, indent=4)
+            write_templates(current_templates)
             template_names = get_template_names(current_templates)
             self.window['template_chosen'].update(values=template_names)
         else:
@@ -209,8 +199,7 @@ class App():
 
     # exec controllers
     def exec_back(self):
-        with open("task_templates.json", "r") as f:
-            current_templates = json.load(f)
+        current_templates = read_templates()
         template_names = get_template_names(current_templates)
         self.window['template_chosen'].update(values=template_names)
         self.window['exec_layout'].update(visible=False)
@@ -266,19 +255,16 @@ class App():
                 return
             elif template_name == None:
                 return
-            with open("task_templates.json", "r") as f:
-                current_templates = json.load(f)
+            current_templates = read_templates()
             current_templates["Remote Execution"][template_name] = self.run_config
-            with open("task_templates.json", "w") as f:
-                json.dump(current_templates, f, indent=4)
+            write_templates(current_templates)
             template_names = get_template_names(current_templates)
             self.window['template_chosen'].update(values=template_names)
         task = exec_config(self.run_config, self.window)
         self.url = task.get_output_log_web_page()
 
     def exec_complete_back(self):
-        with open("task_templates.json", "r") as f:
-            current_templates = json.load(f)
+        current_templates = read_templates()
         template_names = get_template_names(current_templates)
         self.window['template_chosen'].update(values=template_names)
         self.window['queue_list'].update('')
@@ -338,8 +324,7 @@ class App():
         self.window['opt_name'].update('')
         self.window['task_name_for_opt'].update('')
         self.window['project_name_for_opt'].update('')
-        with open("task_templates.json", "r") as f:
-            current_templates = json.load(f)
+        current_templates = read_templates()
         template_names = get_template_names(current_templates)
         self.window['template_chosen'].update(values=template_names)
     
@@ -443,11 +428,9 @@ class App():
                 return
             elif template_name == None:
                 return
-            with open("task_templates.json", "r") as f:
-                current_templates = json.load(f)
+            current_templates = read_templates()
             current_templates["Model Optimization"][template_name] = self.opt_config
-            with open("task_templates.json", "w") as f:
-                json.dump(current_templates, f, indent=4)
+            write_templates(current_templates)
             template_names = get_template_names(current_templates)
             self.standby_window['template_chosen'].update(values=template_names)
         
@@ -473,8 +456,7 @@ class App():
     def param_opt_cancel(self):
         self.window.close()
         self.window = self.standby_window
-        with open("task_templates.json", "r") as f:
-            current_templates = json.load(f)
+        current_templates = read_templates()
         template_names = get_template_names(current_templates)
         self.window['template_chosen'].update(values=template_names)
     
@@ -490,33 +472,36 @@ class App():
         # option_layout is the string key associated with the layout of the 
         #   option selected in the dropdown menu
         option_layout = f'config_{option.split(" ")[0].lower()}_layout'
-        active_profile = self.config_manager.get_active_profile()[0]
-        non_active_profiles = self.config_manager.get_non_active_profiles()
-        non_active_profile_names = get_non_active_profile_names(
-            non_active_profiles)
-        profile_list = get_profile_list(active_profile, non_active_profiles)
+        profiles = get_profile_list(self.config_manager)
+        active_profile, non_active_profile_names, profile_list = profiles
         # reset layout whenever selected
         if option_layout == 'config_checkout_layout':
             self.window['checkout_active_profile'].update(
                 f'Active Profile: {active_profile["profile_name"]}')
             self.window['checkout_non_active_profiles'].update(
                 values=non_active_profile_names)
+        
         elif option_layout == 'config_create_layout':
             self.window['new_profile_name'].update('')
+        
         elif option_layout == 'config_delete_layout':
             self.window['delete_non_active_profiles'].update(
                 values=non_active_profile_names)
             self.window['delete_non_active_profiles'].update('')
+        
         elif option_layout == 'config_list_layout':
             profile_string = get_profile_string(profile_list)
             self.window['profile_list'].update(profile_string)
+        
         elif option_layout == 'config_rename_layout':
             self.window['profile_list_menu'].update(values=profile_list)
             self.window['profile_rename'].update('')
+        
         elif option_layout == 'config_configure_layout':
             self.window['profile_to_config'].update(values=profile_list)
             self.window['profile_to_config'].update('')
             self.window['multiline_config'].update('')
+        
         self.window['config_layout'].update(visible=False)
         self.window[option_layout].update(visible=True)
 
@@ -531,59 +516,49 @@ class App():
         self.window['config_options'].update('')
         self.window['config_layout'].update(visible=True)
 
-    def config_checkout_confirm(self, main_values):
-        profileName = main_values['checkout_non_active_profiles']
-        if self.config_manager.has_profile(profile_name=profileName):
-            self.config_manager.set_active_profile(profileName)
-            self.action_success()
-            self.window['config_checkout_layout'].update(visible=False)
-            self.window['config_layout'].update(visible=True)
-    
-    def config_create_confirm(self, main_values):
-        new_profile_name = main_values['new_profile_name']
-        if self.config_manager.has_profile(profile_name=new_profile_name):
-            self.create_error_window('profile already exists')
-        else:
-            self.config_manager.create_profile(new_profile_name)
-            self.action_success()
-            self.window['config_create_layout'].update(visible=False)
-            self.window['config_layout'].update(visible=True)
-
-    def config_delete_confirm(self, main_values):
-        profile_to_delete = main_values['delete_non_active_profiles']
-        self.config_manager.delete_profile(profile_to_delete)
+    def option_confirm(self, option_confirm, main_values):
+        if option_confirm == 'config_checkout_confirm':
+            profileName = main_values['checkout_non_active_profiles']
+            if self.config_manager.has_profile(profile_name=profileName):
+                self.config_manager.set_active_profile(profileName)
+        
+        elif option_confirm == 'config_create_confirm':
+            new_profile_name = main_values['new_profile_name']
+            if self.config_manager.has_profile(profile_name=new_profile_name):
+                self.create_error_window('profile already exists')
+            else:
+                self.config_manager.create_profile(new_profile_name)
+        
+        elif option_confirm == 'config_delete_confirm':
+            profile_to_delete = main_values['delete_non_active_profiles']
+            self.config_manager.delete_profile(profile_to_delete)
+        
+        elif option_confirm == 'config_rename_confirm':
+            profile_to_rename = main_values['profile_list_menu']
+            profile_rename = main_values['profile_rename']
+            profiles = get_profile_list(self.config_manager)
+            active_profile, non_active_profile_names, profile_list = profiles
+            if profile_rename in profile_list:
+                self.create_error_window('profile name is already taken')
+            elif profile_to_rename == '' or profile_rename == '':
+                self.create_error_window('one or more options is blank')
+            else:
+                self.config_manager.rename_profile(
+                    profile_to_rename, profile_rename)
+        
+        elif option_confirm == 'config_configure_confirm':
+            profile_to_config = main_values['profile_to_config']
+            config = main_values['multiline_config']
+            try:
+                self.config_manager.reinitialize_api_config(
+                    profile_to_config, config)
+            except:
+                self.create_error_window('invalid configuration format')
+        
         self.action_success()
-        self.window['config_delete_layout'].update(visible=False)
+        current_layout = option_confirm.replace('_confirm', '_layout')
+        self.window[current_layout].update(visible=False)
         self.window['config_layout'].update(visible=True)
-
-    def config_rename_confirm(self, main_values):
-        profile_to_rename = main_values['profile_list_menu']
-        profile_rename = main_values['profile_rename']
-        active_profile = self.config_manager.get_active_profile()[0]
-        non_active_profiles = self.config_manager.get_non_active_profiles()
-        profile_list = get_profile_list(active_profile, non_active_profiles)
-        if profile_rename in profile_list:
-            self.create_error_window('profile name is already taken')
-        elif profile_to_rename == '' or profile_rename == '':
-            self.create_error_window('one or more options is blank')
-        else:
-            self.config_manager.rename_profile(
-                profile_to_rename, profile_rename)
-            self.action_success()
-            self.window['config_rename_layout'].update(visible=False)
-            self.window['config_layout'].update(visible=True)
-
-    def config_configure_confirm(self, main_values):
-        profile_to_config = main_values['profile_to_config']
-        config = main_values['multiline_config']
-        try:
-            self.config_manager.reinitialize_api_config(
-                profile_to_config, config)
-            self.action_success()
-            self.window['config_configure_layout'].update(visible=False)
-            self.window['config_layout'].update(visible=True)
-        except:
-            self.create_error_window('invalid configuration format')
 
     # creates an action success window
     def action_success(self):

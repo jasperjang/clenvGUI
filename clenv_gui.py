@@ -126,15 +126,12 @@ while True:
                         'config_configure_back']:
         if event == option_back:
             app.option_back(option_back)
-    if event == 'config_checkout_confirm':
-        app.config_checkout_confirm(values)
-    if event == 'config_create_confirm':
-        app.config_create_confirm(values)
-    if event == 'config_delete_confirm':
-        app.config_delete_confirm(values)
-    if event == 'config_rename_confirm':
-        app.config_rename_confirm(values)
-    if event == 'config_configure_confirm':
-        app.config_configure_confirm(values)
+    for option_confirm in ['config_checkout_confirm',
+                           'config_create_confirm',
+                           'config_delete_confirm',
+                           'config_rename_confirm',
+                           'config_configure_confirm']:
+        if event == option_confirm:
+            app.option_confirm(option_confirm, values)
 
 app.window.close()

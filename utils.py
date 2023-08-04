@@ -2,6 +2,22 @@ import PySimpleGUI as sg
 from clearml import Task
 from clearml.backend_interface.task.populate import CreateAndPopulate
 from clenv.cli.queue.queue_manager import QueueManager
+from os.path import isfile
+import json
+
+def read_templates():
+    if not isfile('./task_templates.json'):
+        with open('task_templates.json', 'w') as f:
+            json.dump({"Remote Execution":{},
+                       "Model Optimization":{}}, 
+                       f, indent=4)
+    with open("task_templates.json", "r") as f:
+        current_templates = json.load(f)
+    return current_templates
+
+def write_templates(templates):
+    with open("task_templates.json", "w") as f:
+        json.dump(templates, f, indent=4)
 
 # detects which parameters are numerical (int or float) and which are discrete 
 #   string values, then organizes them into numeric_params and discrete_params
@@ -126,11 +142,15 @@ def get_non_active_profile_names(non_active_profiles):
     return non_active_profile_names
 
 # returns list of profile names
-def get_profile_list(active_profile, non_active_profiles):
+def get_profile_list(config_manager):
+    active_profile = config_manager.get_active_profile()[0]
+    non_active_profiles = config_manager.get_non_active_profiles()
+    non_active_profile_names = get_non_active_profile_names(
+        non_active_profiles)
     profile_list = [active_profile['profile_name']]
     for profile in non_active_profiles:
         profile_list.append(profile["profile_name"])
-    return profile_list
+    return active_profile, non_active_profile_names, profile_list
 
 # returns string of profiles from the list of profile names
 def get_profile_string(profile_list):
@@ -275,7 +295,7 @@ Required arguments are preceded by a red asterisk.''',
         [sg.HorizontalSeparator()],
         [
             sg.Text('*', text_color='red'), 
-            sg.Text('Please choose a queue to execute the child tasks')],
+            sg.Text('Please choose a queue to execute the child tasks:')],
         [sg.OptionMenu([[]], key='opt_child_queue')],
         [sg.Text()],
         [

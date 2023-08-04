@@ -41,19 +41,19 @@ main_layout = [
 ]
 
 exec_layout = [
-    [sg.Text('Please choose a queue to execute the task')],
+    [sg.Text('Choose a queue to execute the task:')],
     [sg.OptionMenu([[]], key='queue_list')],
     [sg.Text('')],
-    [sg.Text('Please choose a task type')],
+    [sg.Text('Choose a task type:')],
     [sg.OptionMenu(task_types, key='task_types')],
     [sg.Text('')],
-    [sg.Text('Please enter a task name')],
+    [sg.Text('Enter a task name:')],
     [sg.InputText('', key='task_name')],
     [sg.Text('')],
-    [sg.Text('Please enter a script path')],
+    [sg.Text('Enter the script path:')],
     [sg.InputText('/', key='path')],
     [sg.Text('')],
-    [sg.Text('Enter tags separated by commas:')],
+    [sg.Text('Tags separated by commas (optional):')],
     [sg.InputText('', key='tags')],
     [sg.Checkbox('Save as template?', key='save_as_template')],
     [
@@ -140,7 +140,7 @@ This can be found by navigating to the clearML website,
 clicking the button in the top right corner, then 
 settings > workspace > create new credentials
              ''')],
-    [sg.Multiline('', key='multiline_config', size=(5))],
+    [sg.Multiline('', key='multiline_config', size=(60,8))],
     [
         sg.Button('Confirm', key='config_configure_confirm'),
         sg.Button('Back', key='config_configure_back')
@@ -148,19 +148,19 @@ settings > workspace > create new credentials
 ]
 
 model_opt_layout = [
-    [sg.Text('Please choose a queue to host the optimization task')],
+    [sg.Text('Choose a queue to host the optimization task:')],
     [sg.OptionMenu([[]], key='opt_queue')],
     [sg.Text()],
-    [sg.Text('Please enter a task name for the optimizer')],
+    [sg.Text('Enter a task name for the optimizer:')],
     [sg.InputText('', key='opt_name')],
     [sg.Text('')],
-    [sg.Text('Please enter project name for the optimizer')],
+    [sg.Text('Enter project name for the optimizer:')],
     [sg.InputText('', key='opt_project')],
     [sg.Text('')],
-    [sg.Text('Please enter the name of the task you want to optimize')],
+    [sg.Text('Enter the name of the task you want to optimize:')],
     [sg.InputText('', key='task_name_for_opt')],
     [sg.Text('')],
-    [sg.Text('Please enter the name of the project where the task is located')],
+    [sg.Text('Enter the name of the project where the task is located:')],
     [sg.InputText('', key='project_name_for_opt')],
     [sg.Text('')],
     [
