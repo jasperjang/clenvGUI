@@ -44,7 +44,7 @@ If you chose to save the configuration as a template, it will be visible on the
 home screen:
 
 .. image:: images/main_with_template.png
-    :scale: 30 %
+    :scale: 60 %
 
 To run the template, click on the template, then click "Run Template".
 
@@ -57,7 +57,7 @@ If you select the "Model Optimization" button you will be brought to the
 following screen.
 
 .. image:: images/model_opt.png
-    :scale: 30 %
+    :scale: 60 %
 
 Use the dropdown menus to select the queue that will host the optimization task 
 itself, then enter a task name for the optimizer and the name of the project 
@@ -69,7 +69,7 @@ model you would like to optimize has been trained.
 Once you click the "Confirm" you will be brought to the following screen:
 
 .. image:: images/hyperparam_opt.png
-    :scale: 30 %
+    :scale: 60 %
 
 The information you entered in the first step will be displayed at the top of 
 screen. The menus below this information are divided into three columns.
@@ -107,15 +107,12 @@ Here is an example of a completed hyperparameter optimization screen that is
 ready to be executed:
 
 .. image:: images/hyperparam_opt_template.png
-    :scale: 30 %
+    :scale: 60 %
 
 If you would like to save this configuration, check the "Save as template" box 
 before clicking confirm. 
 
-If you checked the box, you will prompted to enter a template name:
-
-.. image:: images/input_template.png
-    :scale: 30 %
+If you checked the box, you will prompted to enter a template name.
 
 Once you confirm, you will be brought to the task executed screen.
 
@@ -126,7 +123,7 @@ If you chose to save the configuration as a template, it will be visible on the
 home screen:
 
 .. image:: images/main_with_template.png
-    :scale: 30 %
+    :scale: 60 %
 
 To run the template, click on the template, then click "Run Template". This will 
 the initial model optimization screen and you will directly enter the 
