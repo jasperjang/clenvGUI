@@ -69,7 +69,7 @@ model you would like to optimize has been trained.
 Once you click the "Confirm" you will be brought to the following screen:
 
 .. image:: images/hyperparam_opt.png
-    :scale: 60 %
+    :scale: 40 %
 
 The information you entered in the first step will be displayed at the top of 
 screen. The menus below this information are divided into three columns.
@@ -107,7 +107,7 @@ Here is an example of a completed hyperparameter optimization screen that is
 ready to be executed:
 
 .. image:: images/hyperparam_opt_template.png
-    :scale: 60 %
+    :scale: 40 %
 
 If you would like to save this configuration, check the "Save as template" box 
 before clicking confirm. 
