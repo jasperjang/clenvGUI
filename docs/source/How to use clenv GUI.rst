@@ -1,17 +1,14 @@
 How To Use Clenv GUI
 ====================
 
-A video walkthrough of all the features can be found here:
+Here is a `video demo`_ of all the features of the program.
 
-.. video:: https://youtu.be/H7ENmoxbXjs?feature=shared
-    :width: 400
-    :height: 300
-    :align: center
+.. _video demo: https://youtu.be/H7ENmoxbXjs?feature=shared
 
 The home screen of the GUI:
 
 .. image:: images/main.png
-    :scale: 30 %
+    :scale: 60 %
 
 When you first open the app, you won't have any saved templates, so you will 
 have the option to to run an experiment remotely or optimize an existing model.
